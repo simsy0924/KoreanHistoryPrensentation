@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>역사는 흑백이 아니다 | 독립협회와 광무개혁</title>
+  <style>
+    :root {
+      --bg: #12100d;
+      --bg-soft: #1d1812;
+      --paper: #f4ead6;
+      --paper-dark: #dfcfad;
+      --ink: #2a2018;
+      --muted: #796a56;
+      --gold: #c89b3c;
+      --red: #8d2e26;
+      --blue: #243b53;
+      --green: #3f5f45;
+      --white: #fffaf0;
+      --shadow: rgba(0, 0, 0, 0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(200, 155, 60, 0.2), transparent 34rem),
+        linear-gradient(180deg, #15110d 0%, #241b13 55%, #110f0c 100%);
+      color: var(--white);
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(14px);
+      background: rgba(18, 16, 13, 0.78);
+      border-bottom: 1px solid rgba(244, 234, 214, 0.12);
+    }
+
+    .nav {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--paper);
+      white-space: nowrap;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 0.6rem;
+      overflow-x: auto;
+      font-size: 0.9rem;
+      color: rgba(255, 250, 240, 0.82);
+    }
+
+    .nav-links a {
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .nav-links a:hover {
+      background: rgba(244, 234, 214, 0.13);
+    }
+
+    .hero {
+      min-height: 92vh;
+      display: grid;
+      place-items: center;
+      padding: 5rem 1rem 3rem;
+    }
+
+    .hero-inner {
+      max-width: 1120px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.35rem 0.75rem;
+      border: 1px solid rgba(200, 155, 60, 0.5);
+      border-radius: 999px;
+      color: var(--paper-dark);
+      font-size: 0.92rem;
+      margin-bottom: 1rem;
+      background: rgba(200, 155, 60, 0.08);
+    }
+
+    h1 {
+      font-size: clamp(3rem, 8vw, 7rem);
+      line-height: 0.95;
+      margin: 0;
+      letter-spacing: -0.08em;
+      color: var(--paper);
+    }
+
+    .hero p {
+      max-width: 42rem;
+      color: rgba(255, 250, 240, 0.82);
+      font-size: 1.12rem;
+      margin: 1.4rem 0 2rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .btn {
+      border: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.9rem 1.05rem;
+      border-radius: 1rem;
+      font-weight: 800;
+      transition: 0.22s ease;
+      font-size: 0.98rem;
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: #21170f;
+      box-shadow: 0 16px 34px rgba(200, 155, 60, 0.18);
+    }
+
+    .btn-secondary {
+      background: rgba(244, 234, 214, 0.09);
+      color: var(--paper);
+      border: 1px solid rgba(244, 234, 214, 0.16);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .opening-card {
+      background: linear-gradient(160deg, var(--paper) 0%, #d9c595 100%);
+      color: var(--ink);
+      border-radius: 2rem;
+      padding: 1.4rem;
+      box-shadow: 0 30px 80px var(--shadow);
+      transform: rotate(1.2deg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .opening-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(42,32,24,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(42,32,24,0.04) 1px, transparent 1px);
+      background-size: 22px 22px;
+      pointer-events: none;
+    }
+
+    .stamp {
+      display: inline-block;
+      border: 3px solid var(--red);
+      color: var(--red);
+      font-weight: 900;
+      padding: 0.35rem 0.65rem;
+      transform: rotate(-7deg);
+      margin-bottom: 1rem;
+      letter-spacing: -0.04em;
+    }
+
+    .opening-card h2 {
+      position: relative;
+      margin: 0;
+      font-size: 2rem;
+      line-height: 1.15;
+      letter-spacing: -0.05em;
+    }
+
+    .opening-card p {
+      position: relative;
+      color: var(--muted);
+      font-size: 1rem;
+      margin-bottom: 0;
+    }
+
+    section {
+      padding: 5rem 1rem;
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    .section-head {
+      margin-bottom: 2rem;
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .section-head h2 {
+      font-size: clamp(2rem, 5vw, 4.2rem);
+      line-height: 1;
+      margin: 0;
+      color: var(--paper);
+      letter-spacing: -0.07em;
+    }
+
+    .section-head p {
+      margin: 0;
+      max-width: 48rem;
+      color: rgba(255, 250, 240, 0.73);
+    }
+
+    .paper-panel {
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 1.6rem;
+      padding: clamp(1.2rem, 3vw, 2rem);
+      box-shadow: 0 26px 70px var(--shadow);
+    }
+
+    .question-box {
+      border-left: 6px solid var(--gold);
+      background: rgba(200, 155, 60, 0.13);
+      padding: 1.2rem;
+      border-radius: 1rem;
+      margin: 1.2rem 0;
+    }
+
+    .question-box h3 {
+      margin: 0 0 0.4rem;
+      letter-spacing: -0.04em;
+    }
+
+    .hands {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .hand-option {
+      border: 1px solid rgba(42, 32, 24, 0.16);
+      border-radius: 1rem;
+      padding: 0.8rem;
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.35);
+      text-align: center;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 1rem;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 1rem;
+      top: 0.5rem;
+      bottom: 0.5rem;
+      width: 2px;
+      background: rgba(200, 155, 60, 0.55);
+    }
+
+    .time-item {
+      display: grid;
+      grid-template-columns: 5rem 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding-left: 2rem;
+      position: relative;
+    }
+
+    .time-item::before {
+      content: "";
+      position: absolute;
+      left: 0.62rem;
+      top: 0.45rem;
+      width: 0.8rem;
+      height: 0.8rem;
+      background: var(--gold);
+      border-radius: 50%;
+      border: 3px solid var(--paper);
+    }
+
+    .year {
+      font-weight: 900;
+      color: var(--red);
+    }
+
+    .time-content strong {
+      display: block;
+      font-size: 1.05rem;
+    }
+
+    .time-content span {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .grid-2, .grid-3, .grid-4 {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .info-card {
+      background: rgba(244, 234, 214, 0.07);
+      border: 1px solid rgba(244, 234, 214, 0.14);
+      border-radius: 1.4rem;
+      padding: 1.2rem;
+      color: rgba(255, 250, 240, 0.86);
+      min-height: 100%;
+    }
+
+    .info-card h3 {
+      color: var(--paper);
+      margin: 0 0 0.5rem;
+      letter-spacing: -0.04em;
+    }
+
+    .tag {
+      display: inline-flex;
+      margin-bottom: 0.8rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(200, 155, 60, 0.13);
+      color: var(--paper-dark);
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .flip-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .flip-card {
+      perspective: 1100px;
+      min-height: 270px;
+    }
+
+    .flip-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 270px;
+      transition: transform 0.65s;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+
+    .flip-card.flipped .flip-inner {
+      transform: rotateY(180deg);
+    }
+
+    .flip-front, .flip-back {
+      position: absolute;
+      inset: 0;
+      padding: 1.3rem;
+      border-radius: 1.4rem;
+      backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.18);
+    }
+
+    .flip-front {
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    .flip-back {
+      background: #2d241a;
+      color: var(--paper);
+      transform: rotateY(180deg);
+      border: 1px solid rgba(244, 234, 214, 0.14);
+    }
+
+    .flip-front h3, .flip-back h3 {
+      margin: 0;
+      font-size: 1.4rem;
+      line-height: 1.2;
+      letter-spacing: -0.05em;
+    }
+
+    .flip-front p, .flip-back p {
+      margin: 0.8rem 0 0;
+    }
+
+    .hint {
+      font-size: 0.84rem;
+      opacity: 0.72;
+      font-weight: 800;
+    }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 1rem;
+      margin-top: 1rem;
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .compare-table th,
+    .compare-table td {
+      padding: 0.9rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(42, 32, 24, 0.14);
+      vertical-align: top;
+    }
+
+    .compare-table th {
+      background: rgba(141, 46, 38, 0.12);
+      font-weight: 900;
+    }
+
+    .judge-zone {
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .judge-card {
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 1.5rem;
+      padding: 1.2rem;
+    }
+
+    .judge-card h3 {
+      margin-top: 0;
+      letter-spacing: -0.05em;
+    }
+
+    .choice-list {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 1rem;
+    }
+
+    .choice {
+      border: 1px solid rgba(42, 32, 24, 0.15);
+      background: rgba(255, 255, 255, 0.42);
+      padding: 0.85rem;
+      border-radius: 0.9rem;
+      cursor: pointer;
+      font-weight: 800;
+      text-align: left;
+      color: var(--ink);
+    }
+
+    .choice:hover,
+    .choice.active {
+      background: rgba(200, 155, 60, 0.28);
+      border-color: rgba(141, 46, 38, 0.35);
+    }
+
+    .answer {
+      display: none;
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 1rem;
+      background: rgba(63, 95, 69, 0.12);
+      border-left: 5px solid var(--green);
+    }
+
+    .answer.visible {
+      display: block;
+    }
+
+    .quote {
+      font-size: clamp(1.9rem, 4vw, 4rem);
+      line-height: 1.12;
+      letter-spacing: -0.07em;
+      margin: 0;
+      color: var(--paper);
+    }
+
+    .closing {
+      min-height: 80vh;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
+    .closing .paper-panel {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .source-note {
+      font-size: 0.88rem;
+      color: rgba(255, 250, 240, 0.55);
+      border-top: 1px solid rgba(244, 234, 214, 0.12);
+      padding-top: 1.2rem;
+      margin-top: 3rem;
+    }
+
+    .progress {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 4px;
+      background: var(--gold);
+      width: 0%;
+      z-index: 100;
+    }
+
+    @media (max-width: 900px) {
+      .hero-inner,
+      .judge-zone,
+      .grid-2,
+      .grid-3,
+      .grid-4,
+      .flip-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .opening-card {
+        transform: none;
+      }
+
+      .hands {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .nav {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .hands {
+        grid-template-columns: 1fr;
+      }
+
+      .time-item {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+
+  <header class="topbar">
+    <nav class="nav">
+      <a href="#top" class="brand">역사는 흑백이 아니다</a>
+      <div class="nav-links">
+        <a href="#why">왜 배우나</a>
+        <a href="#timeline">시대 상황</a>
+        <a href="#independence">독립협회</a>
+        <a href="#gwangmu">광무개혁</a>
+        <a href="#people">인물</a>
+        <a href="#judgement">판단</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="hero-inner">
+        <div>
+          <div class="eyebrow">1896–1904 · 독립협회 · 광무개혁 · 황국협회</div>
+          <h1>역사는<br />흑백이<br />아니다</h1>
+          <p>
+            독립협회와 광무개혁을 통해, 역사를 “좋은 편과 나쁜 편”으로만 나눌 수 없는 이유를 살펴봅니다.
+            발표 중 손들기 질문을 통해 여러분의 판단도 함께 확인합니다.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#why">발표 시작하기</a>
+            <a class="btn btn-secondary" href="#judgement">최종 질문 보기</a>
+          </div>
+        </div>
+
+        <aside class="opening-card">
+          <div class="stamp">발표 질문</div>
+          <h2>우리는 역사를 왜 배울까?</h2>
+          <p>
+            시험을 위해서만일까요? 아니면 과거의 선택을 통해 오늘의 판단력을 기르기 위해서일까요?
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="why">
+      <div class="container">
+        <div class="section-head">
+          <h2>1. 출발점: 역사를 배우는 이유</h2>
+          <p>
+            이 발표의 목표는 독립협회와 광무개혁을 단순히 외우는 것이 아니라, 복잡한 시대 속 선택을 이해하는 것입니다.
+          </p>
+        </div>
+
+        <div class="paper-panel">
+          <div class="question-box">
+            <h3>손들기 질문 1</h3>
+            <p>여러분은 역사를 왜 배운다고 생각하나요?</p>
+            <div class="hands">
+              <div class="hand-option">① 시험을 위해</div>
+              <div class="hand-option">② 과거를 알기 위해</div>
+              <div class="hand-option">③ 현재를 판단하기 위해</div>
+              <div class="hand-option">④ 실수를 반복하지 않기 위해</div>
+            </div>
+          </div>
+
+          <p>
+            오늘 발표는 “독립협회는 좋은 단체, 황국협회는 나쁜 단체”처럼 단순하게 나누지 않습니다.
+            오히려 각 세력이 어떤 조건에서 어떤 선택을 했고, 그 선택이 어떤 결과로 이어졌는지 살펴봅니다.
+          </p>
+
+          <blockquote class="question-box">
+            <h3>핵심 문장</h3>
+            <p><strong>역사는 정답을 외우기 위해서가 아니라, 쉽게 판단하지 않기 위해 배운다.</strong></p>
+          </blockquote>
+        </div>
+      </div>
+    </section>
+
+    <section id="timeline">
+      <div class="container">
+        <div class="section-head">
+          <h2>2. 시대 상황: 흔들리는 조선과 대한제국</h2>
+          <p>
+            독립협회와 광무개혁은 모두 외세의 압박과 내부 개혁 요구가 커지던 시대에 등장했습니다.
+          </p>
+        </div>
+
+        <div class="paper-panel">
+          <div class="timeline">
+            <div class="time-item">
+              <div class="year">1894</div>
+              <div class="time-content">
+                <strong>갑오개혁</strong>
+                <span>근대적 제도 개혁이 시도되었지만, 일본의 영향력이 강했다는 한계도 있었습니다.</span>
+              </div>
+            </div>
+            <div class="time-item">
+              <div class="year">1895</div>
+              <div class="time-content">
+                <strong>을미사변</strong>
+                <span>명성황후 시해 사건 이후 조선 사회의 위기감이 커졌습니다.</span>
+              </div>
+            </div>
+            <div class="time-item">
+              <div class="year">1896</div>
+              <div class="time-content">
+                <strong>아관파천과 독립협회 창립</strong>
+                <span>고종이 러시아 공사관으로 피신했고, 독립협회는 자주독립과 계몽을 내세워 등장했습니다.</span>
+              </div>
+            </div>
+            <div class="time-item">
+              <div class="year">1897</div>
+              <div class="time-content">
+                <strong>대한제국 수립</strong>
+                <span>고종은 황제로 즉위하며 자주국가임을 선포했고, 황제 중심 개혁의 기반을 마련했습니다.</span>
+              </div>
+            </div>
+            <div class="time-item">
+              <div class="year">1898</div>
+              <div class="time-content">
+                <strong>만민공동회·관민공동회·헌의 6조</strong>
+                <span>민중과 관료가 정치 개혁을 논의하며 민권과 의회적 개혁 요구가 커졌습니다.</span>
+              </div>
+            </div>
+            <div class="time-item">
+              <div class="year">1898</div>
+              <div class="time-content">
+                <strong>황국협회와 충돌, 독립협회 해산</strong>
+                <span>보부상 중심의 황국협회와 독립협회가 충돌했고, 정부는 독립협회를 해산시켰습니다.</span>
+              </div>
+            </div>
+            <div class="time-item">
+              <div class="year">1899</div>
+              <div class="time-content">
+                <strong>대한국 국제</strong>
+                <span>대한제국은 황제권을 강하게 규정하며 국가 주도 개혁을 추진했습니다.</span>
+              </div>
+            </div>
+            <div class="time-item">
+              <div class="year">1904</div>
+              <div class="time-content">
+                <strong>러일전쟁과 일본 간섭 강화</strong>
+                <span>대한제국의 개혁은 외세의 압박 속에서 지속되기 어려워졌습니다.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="independence">
+      <div class="container">
+        <div class="section-head">
+          <h2>3. 독립협회: 빛과 그림자</h2>
+          <p>
+            독립협회는 자주독립과 민권의 가능성을 보여주었지만, 동시에 오늘날 민주주의와 완전히 같지는 않았습니다.
+          </p>
+        </div>
+
+        <div class="grid-4">
+          <article class="info-card">
+            <span class="tag">빛</span>
+            <h3>독립신문</h3>
+            <p>한글 중심 신문을 통해 민중 계몽과 여론 형성에 기여했습니다.</p>
+          </article>
+          <article class="info-card">
+            <span class="tag">빛</span>
+            <h3>독립문</h3>
+            <p>청에 대한 사대 관계에서 벗어나 자주독립을 상징하는 건축물이 되었습니다.</p>
+          </article>
+          <article class="info-card">
+            <span class="tag">빛</span>
+            <h3>만민공동회</h3>
+            <p>민중이 공개적으로 정치 의견을 표현한 중요한 사례였습니다.</p>
+          </article>
+          <article class="info-card">
+            <span class="tag">빛</span>
+            <h3>헌의 6조</h3>
+            <p>의회 설립과 국정 개혁을 요구하며 입헌 정치의 가능성을 보여주었습니다.</p>
+          </article>
+        </div>
+
+        <div style="height: 1rem"></div>
+
+        <div class="paper-panel">
+          <h3>하지만, 여기서 멈추면 흑백 논리가 됩니다.</h3>
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>밝은 면</th>
+                <th>재조명할 점</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>민권과 의회 설립을 주장했다.</td>
+                <td>민중을 완전한 정치 주체라기보다 계몽 대상으로 본 한계가 있었다.</td>
+              </tr>
+              <tr>
+                <td>열강의 이권 침탈에 반대했다.</td>
+                <td>반러 성향이 강했고, 영미일에 대한 경계는 상대적으로 약했다.</td>
+              </tr>
+              <tr>
+                <td>만민공동회를 통해 민중 참여를 확대했다.</td>
+                <td>지도층 중심의 엘리트주의와 급진화 문제도 있었다.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="question-box">
+            <h3>손들기 질문 2</h3>
+            <p>독립협회는 오늘날의 민주주의 단체였을까요?</p>
+            <div class="hands">
+              <div class="hand-option">① 그렇다</div>
+              <div class="hand-option">② 아니다</div>
+              <div class="hand-option">③ 일부만 그렇다</div>
+              <div class="hand-option">④ 판단 보류</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gwangmu">
+      <div class="container">
+        <div class="section-head">
+          <h2>4. 광무개혁: 황제가 꿈꾼 근대국가</h2>
+          <p>
+            광무개혁은 대한제국이 추진한 국가 주도 근대화였습니다. 하지만 근대화와 황제권 강화가 함께 존재했습니다.
+          </p>
+        </div>
+
+        <div class="grid-2">
+          <div class="paper-panel">
+            <h3>밝은 면: 국가 주도 근대화</h3>
+            <ul>
+              <li>양전·지계 사업을 통한 토지 제도 정비</li>
+              <li>전차, 전기, 통신, 도로 등 도시 근대화</li>
+              <li>상공업 진흥과 근대 교육 확대</li>
+              <li>군제 개편과 군사력 강화 시도</li>
+            </ul>
+          </div>
+          <div class="paper-panel">
+            <h3>어두운 면: 황제권 중심 개혁</h3>
+            <ul>
+              <li>정치 참여 확대보다는 황제권 강화에 가까운 방향</li>
+              <li>황실 재정 중심 운영과 불투명성 문제</li>
+              <li>민중의 직접 참여 기반이 약함</li>
+              <li>외세 압박 속에서 개혁이 지속되기 어려웠음</li>
+            </ul>
+          </div>
+        </div>
+
+        <div style="height: 1rem"></div>
+
+        <div class="paper-panel">
+          <div class="question-box">
+            <h3>손들기 질문 3</h3>
+            <p>광무개혁은 근대화였을까요, 황제권 강화였을까요?</p>
+            <div class="hands">
+              <div class="hand-option">① 근대화</div>
+              <div class="hand-option">② 황제권 강화</div>
+              <div class="hand-option">③ 둘 다</div>
+              <div class="hand-option">④ 잘 모르겠다</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="hwangguk">
+      <div class="container">
+        <div class="section-head">
+          <h2>5. 황국협회: 또 다른 민중, 혹은 정치적 도구</h2>
+          <p>
+            황국협회는 독립협회의 반대편에 섰지만, 단순한 악역으로만 보면 당시 사회의 복잡성이 사라집니다.
+          </p>
+        </div>
+
+        <div class="judge-zone">
+          <div class="paper-panel">
+            <h3>핵심 포인트</h3>
+            <p>
+              황국협회는 보부상 기반의 조직으로, 겉으로는 충군애국과 부국강병을 내세웠습니다.
+              그러나 실제 정치 과정에서는 독립협회와 만민공동회를 견제하는 역할을 했습니다.
+            </p>
+          </div>
+          <div class="paper-panel">
+            <h3>생각해볼 질문</h3>
+            <p>
+              만민공동회도 민중, 황국협회도 민중 기반이 있었습니다.
+              그렇다면 “민중”은 항상 같은 정치적 방향을 가질까요?
+            </p>
+            <div class="hands">
+              <div class="hand-option">① 그렇다</div>
+              <div class="hand-option">② 아니다</div>
+              <div class="hand-option">③ 상황에 따라 다르다</div>
+              <div class="hand-option">④ 판단하기 어렵다</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="people">
+      <div class="container">
+        <div class="section-head">
+          <h2>6. 인물 재조명: 선택은 변한다</h2>
+          <p>
+            한 사람을 하나의 단어로만 평가할 수 있을까요? 카드를 눌러 앞면과 뒷면을 비교해보세요.
+          </p>
+        </div>
+
+        <div class="flip-grid">
+          <article class="flip-card" tabindex="0">
+            <div class="flip-inner">
+              <div class="flip-front">
+                <div>
+                  <span class="tag">서재필</span>
+                  <h3>계몽가이자 독립신문의 주역</h3>
+                  <p>독립신문 창간과 독립협회 창립에 참여하며 자주독립과 민중 계몽을 강조했습니다.</p>
+                </div>
+                <span class="hint">클릭해서 재조명 보기</span>
+              </div>
+              <div class="flip-back">
+                <div>
+                  <h3>외부자의 시선?</h3>
+                  <p>미국에서 서구식 근대화를 경험한 인물로, 조선 사회를 서구 기준으로 바라본 측면도 있었습니다.</p>
+                </div>
+                <span class="hint">다시 클릭하면 돌아갑니다</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="flip-card" tabindex="0">
+            <div class="flip-inner">
+              <div class="flip-front">
+                <div>
+                  <span class="tag">윤치호</span>
+                  <h3>민권 운동가</h3>
+                  <p>독립협회와 만민공동회 활동에 참여하며 근대적 정치 참여를 주장했습니다.</p>
+                </div>
+                <span class="hint">클릭해서 재조명 보기</span>
+              </div>
+              <div class="flip-back">
+                <div>
+                  <h3>이후 친일 행적</h3>
+                  <p>젊은 시절의 개혁적 활동과 달리, 일제강점기에는 친일 행적을 보였습니다.</p>
+                </div>
+                <span class="hint">다시 클릭하면 돌아갑니다</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="flip-card" tabindex="0">
+            <div class="flip-inner">
+              <div class="flip-front">
+                <div>
+                  <span class="tag">이완용</span>
+                  <h3>불편한 사실</h3>
+                  <p>훗날 대표적인 매국 인물로 평가되지만, 초기에는 독립협회 활동에 참여한 적이 있습니다.</p>
+                </div>
+                <span class="hint">클릭해서 재조명 보기</span>
+              </div>
+              <div class="flip-back">
+                <div>
+                  <h3>과거가 이후를 덮을 수는 없다</h3>
+                  <p>독립협회 참여가 을사늑약과 병합 과정의 책임을 정당화하지는 않습니다. 다만 인물의 선택 변화를 분석할 필요는 있습니다.</p>
+                </div>
+                <span class="hint">다시 클릭하면 돌아갑니다</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div style="height: 1rem"></div>
+        <div class="paper-panel">
+          <div class="question-box">
+            <h3>손들기 질문 4</h3>
+            <p>한 사람의 젊은 시절의 개혁 활동과 훗날의 잘못은 어떻게 평가해야 할까요?</p>
+            <div class="hands">
+              <div class="hand-option">① 과거도 인정해야 한다</div>
+              <div class="hand-option">② 이후 행적이 결정적이다</div>
+              <div class="hand-option">③ 둘을 구분해 평가한다</div>
+              <div class="hand-option">④ 아직 모르겠다</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="judgement">
+      <div class="container">
+        <div class="section-head">
+          <h2>7. 흑백 판정 금지 구역</h2>
+          <p>
+            아래 질문을 눌러보며, 단순한 찬반이 아닌 복합적 판단을 연습해봅니다.
+          </p>
+        </div>
+
+        <div class="judge-zone">
+          <div class="judge-card">
+            <h3>질문 선택</h3>
+            <div class="choice-list">
+              <button class="choice active" data-answer="a1">독립협회는 민주주의 단체였나?</button>
+              <button class="choice" data-answer="a2">광무개혁은 근대화였나?</button>
+              <button class="choice" data-answer="a3">황국협회는 단순한 악역이었나?</button>
+              <button class="choice" data-answer="a4">이완용의 초기 행적은 평가를 바꾸나?</button>
+            </div>
+          </div>
+
+          <div class="judge-card">
+            <h3>판단 예시</h3>
+            <div id="a1" class="answer visible">
+              독립협회는 민권과 의회적 개혁을 주장했다는 점에서 근대 정치 참여의 가능성을 보여주었습니다.
+              하지만 오늘날 민주주의처럼 모든 민중을 완전한 정치 주체로 본 것은 아니었습니다.
+            </div>
+            <div id="a2" class="answer">
+              광무개혁은 토지, 산업, 도시, 군사 분야의 근대화를 추진했습니다.
+              그러나 동시에 황제권을 강화하는 성격이 강했기 때문에, 근대화와 전제 권력 강화가 함께 존재했습니다.
+            </div>
+            <div id="a3" class="answer">
+              황국협회는 독립협회 탄압에 동원되었다는 점에서 비판받을 수 있습니다.
+              그러나 보부상이라는 민중 기반이 있었다는 점에서, 단순히 “나쁜 편”으로만 설명하기 어렵습니다.
+            </div>
+            <div id="a4" class="answer">
+              이완용이 초기 독립협회 활동에 참여했다는 사실은 역사적 분석의 대상입니다.
+              하지만 그것이 이후의 매국 행위를 정당화하지는 않습니다. 과거의 행적과 이후의 책임은 구분해 평가해야 합니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing" id="closing">
+      <div class="container">
+        <p class="quote">역사는 판결문이 아니라<br />질문지에 가깝다.</p>
+        <div style="height: 1.4rem"></div>
+        <div class="paper-panel">
+          <h2>최종 결론</h2>
+          <p>
+            독립협회는 완전히 선한 단체도, 완전히 실패한 단체도 아니었습니다.
+            광무개혁도 단순한 근대화 정책이나 단순한 황제권 강화만으로 설명할 수 없습니다.
+            황국협회와 여러 인물들의 행적까지 보면, 이 시기의 역사는 애국과 매국, 진보와 보수만으로 나누기 어렵습니다.
+          </p>
+          <p>
+            그래서 역사를 배운다는 것은 과거를 흑백으로 나누는 일이 아닙니다.
+            복잡한 조건 속에서 사람들의 선택을 살펴보고, 그 선택이 만든 결과를 통해 오늘의 우리가 더 신중하게 판단하는 법을 배우는 일입니다.
+          </p>
+          <div class="question-box">
+            <h3>마지막 손들기 질문</h3>
+            <p>발표를 들은 뒤, 여러분은 역사를 왜 배운다고 생각하나요?</p>
+            <div class="hands">
+              <div class="hand-option">① 사실 암기</div>
+              <div class="hand-option">② 인물 평가</div>
+              <div class="hand-option">③ 복합적 판단 연습</div>
+              <div class="hand-option">④ 현재를 위한 교훈</div>
+            </div>
+          </div>
+        </div>
+
+        <p class="source-note">
+          참고 자료를 넣을 자리: 교과서, 우리역사넷, 한국민족문화대백과, 독립협회·광무개혁 관련 논문/자료 등.
+          실제 제출 전에는 학교 교과서 내용과 출처 표기를 맞춰 수정하세요.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const progress = document.getElementById('progress');
+
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const percent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      progress.style.width = percent + '%';
+    });
+
+    document.querySelectorAll('.flip-card').forEach((card) => {
+      const toggle = () => card.classList.toggle('flipped');
+      card.addEventListener('click', toggle);
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggle();
+        }
+      });
+    });
+
+    document.querySelectorAll('.choice').forEach((button) => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.choice').forEach((b) => b.classList.remove('active'));
+        document.querySelectorAll('.answer').forEach((answer) => answer.classList.remove('visible'));
+        button.classList.add('active');
+        document.getElementById(button.dataset.answer).classList.add('visible');
+      });
+    });
+  </script>
+</body>
+</html>
