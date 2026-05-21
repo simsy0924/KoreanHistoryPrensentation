@@ -99,7 +99,7 @@
   pointer-events:none;
 }
 .route-bridge.active{
-  animation:bridgePass .82s ease both;
+  animation:bridgePass 1.65s ease both;
 }
 .route-bridge span{
   display:inline-flex;
@@ -122,9 +122,9 @@
 }
 @keyframes bridgePass{
   0%{opacity:0;transform:translate(-50%,-46%) scale(.98)}
-  18%{opacity:1;transform:translate(-50%,-50%) scale(1)}
-  70%{opacity:1;transform:translate(-50%,-50%) scale(1)}
-  100%{opacity:0;transform:translate(-50%,-54%) scale(.99)}
+  14%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  78%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  100%{opacity:0;transform:translate(-50%,-53%) scale(.99)}
 }
 .slide.active .wrap{
   animation:pageSettle .32s ease both;
@@ -203,8 +203,8 @@ function linkedGo(target,label){
   bridge.classList.remove('active');
   void bridge.offsetWidth;
   bridge.classList.add('active');
-  setTimeout(function(){goTo(target);},320);
-  setTimeout(function(){bridge.classList.remove('active');moving=false;},860);
+  setTimeout(function(){goTo(target);},720);
+  setTimeout(function(){bridge.classList.remove('active');moving=false;},1750);
 }
 function nextSlide(){linkedGo(current+1,'다음 쟁점')}
 function prevSlide(){linkedGo(current-1,'이전 쟁점')}
