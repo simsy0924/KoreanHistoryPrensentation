@@ -945,10 +945,56 @@
     }
 
     @keyframes messageArrive {
-      0% { opacity: 0; transform: translateY(12px) scale(0.96); }
-      24% { opacity: 1; transform: translateY(0) scale(1); }
-      78% { opacity: 1; transform: translateY(0) scale(1); }
+      0%, 45% { opacity: 0; transform: translateY(10px) scale(0.98); }
+      56% { opacity: 1; transform: translateY(0) scale(1); }
+      84% { opacity: 1; transform: translateY(0) scale(1); }
       100% { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    }
+
+    /* 타임머신 효과 속도 조정: 연도가 먼저 충분히 보이고, 문구는 뒤에 등장 */
+    .time-warp.active {
+      animation: warpFade 3.25s ease both;
+    }
+
+    .warp-rings::before,
+    .warp-rings::after {
+      animation-duration: 2.15s;
+    }
+
+    .warp-tunnel {
+      animation-duration: 2.8s;
+    }
+
+    .warp-years {
+      z-index: 3;
+    }
+
+    .warp-years span {
+      animation: yearHold 0.9s ease-in-out both;
+      text-shadow: 0 0 28px rgba(245,234,210,0.18);
+    }
+
+    .warp-years span:nth-child(1) { animation-delay: 0.00s; }
+    .warp-years span:nth-child(2) { animation-delay: 0.36s; }
+    .warp-years span:nth-child(3) { animation-delay: 0.72s; }
+    .warp-years span:nth-child(4) { animation-delay: 1.08s; }
+    .warp-years span:nth-child(5) { animation-delay: 1.44s; }
+    .warp-years span:nth-child(6) { animation-delay: 1.80s; color: rgba(245,234,210,0.44); }
+
+    .warp-message {
+      position: absolute;
+      left: 50%;
+      bottom: 10vh;
+      transform: translateX(-50%);
+      width: min(92vw, 560px);
+      animation: messageArrive 3.05s ease both;
+    }
+
+    @keyframes yearHold {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(2.1); filter: blur(8px); }
+      18% { opacity: 0.92; transform: translate(-50%, -50%) scale(1.24); filter: blur(1px); }
+      68% { opacity: 0.92; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.62); filter: blur(2px); }
     }
 </style>
 </head>
@@ -1532,11 +1578,11 @@
 
     window.setTimeout(function() {
       nextSlide();
-    }, 1180);
+    }, 2750);
 
     window.setTimeout(function() {
       warp.classList.remove('active');
-    }, 1700);
+    }, 3350);
   }
 
   function getTopLens() {
