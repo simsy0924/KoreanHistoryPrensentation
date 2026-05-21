@@ -748,10 +748,228 @@
       .meter-row { grid-template-columns: 1fr; }
       h1 { font-size: 3.2rem; }
     }
-  </style>
+  
+    /* 애니메이션 재조정: 과한 빛 효과와 흔들림을 줄이고 발표용으로 차분하게 변경 */
+    @keyframes calmFade {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes calmSlide {
+      from { opacity: 0; transform: translateX(-10px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes calmSelect {
+      from { transform: scale(0.992); }
+      to { transform: scale(1); }
+    }
+
+    .slide.active .slide-kicker,
+    .slide.active h1,
+    .slide.active h2,
+    .slide.active .lead {
+      animation: calmSlide 0.32s ease-out both !important;
+    }
+
+    .slide.active .paper,
+    .slide.active .choice-panel,
+    .slide.active .quote-card,
+    .slide.active .history-box,
+    .slide.active .dark-card,
+    .slide.active .fact-card,
+    .slide.active .figure-card,
+    .slide.active .person-card,
+    .slide.active .time-item {
+      animation: calmFade 0.28s ease-out both !important;
+      animation-delay: 0s !important;
+    }
+
+    .paper::after,
+    .quote-card::after,
+    .slide.active .paper::after,
+    .slide.active .quote-card::after {
+      display: none !important;
+      animation: none !important;
+      opacity: 0 !important;
+    }
+
+    .choice-btn.selected {
+      animation: calmSelect 0.18s ease-out both !important;
+      box-shadow: inset 0 0 0 2px rgba(141,47,39,0.18), 0 8px 18px rgba(40,31,23,0.08) !important;
+    }
+
+    .choice-btn:hover,
+    .main-btn:hover,
+    .small-btn:hover,
+    .ghost-btn:hover,
+    .sub-btn:hover {
+      transform: translateY(-1px) !important;
+    }
+
+    .figure-card:hover img,
+    .person-card:hover .person-photo {
+      transform: none !important;
+      filter: sepia(0.08) contrast(1.03) !important;
+    }
+
+    /* 발표 시작 전용 타임머신 효과 */
+    .time-warp {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: none;
+      place-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at center, rgba(245,234,210,0.16), transparent 18rem),
+        radial-gradient(circle at center, rgba(201,154,58,0.18), transparent 32rem),
+        #070604;
+      color: var(--paper);
+      pointer-events: none;
+    }
+
+    .time-warp.active {
+      display: grid;
+      animation: warpFade 1.65s ease both;
+    }
+
+    .warp-rings,
+    .warp-tunnel {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .warp-rings::before,
+    .warp-rings::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 18rem;
+      height: 18rem;
+      border: 2px solid rgba(245,234,210,0.22);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: ringTravel 1.35s ease-out infinite;
+    }
+
+    .warp-rings::after {
+      width: 28rem;
+      height: 28rem;
+      animation-delay: 0.22s;
+      border-color: rgba(201,154,58,0.26);
+    }
+
+    .warp-tunnel {
+      background:
+        repeating-conic-gradient(from 0deg, rgba(245,234,210,0.08) 0deg 8deg, transparent 8deg 18deg),
+        radial-gradient(circle at center, transparent 0 5rem, rgba(201,154,58,0.08) 5.2rem 5.35rem, transparent 5.5rem 100%);
+      mix-blend-mode: screen;
+      animation: tunnelSpin 1.45s cubic-bezier(.2,.8,.2,1) both;
+      opacity: 0.85;
+    }
+
+    .warp-years {
+      position: absolute;
+      inset: 0;
+      font-weight: 950;
+      font-size: clamp(2rem, 7vw, 6rem);
+      letter-spacing: -0.08em;
+      color: rgba(245,234,210,0.18);
+    }
+
+    .warp-years span {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(1.2);
+      opacity: 0;
+      animation: yearRush 1.35s ease-in-out both;
+    }
+
+    .warp-years span:nth-child(1) { animation-delay: 0.00s; }
+    .warp-years span:nth-child(2) { animation-delay: 0.12s; }
+    .warp-years span:nth-child(3) { animation-delay: 0.24s; }
+    .warp-years span:nth-child(4) { animation-delay: 0.36s; }
+    .warp-years span:nth-child(5) { animation-delay: 0.48s; }
+    .warp-years span:nth-child(6) { animation-delay: 0.60s; color: rgba(245,234,210,0.34); }
+
+    .warp-message {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 1.2rem 1.5rem;
+      border: 1px solid rgba(245,234,210,0.22);
+      border-radius: 1.4rem;
+      background: rgba(16,14,11,0.58);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 24px 70px rgba(0,0,0,0.36);
+      animation: messageArrive 1.5s ease both;
+    }
+
+    .warp-message strong {
+      display: block;
+      font-size: clamp(1.4rem, 4vw, 2.6rem);
+      letter-spacing: -0.06em;
+    }
+
+    .warp-message p {
+      margin: 0.35rem 0 0;
+      color: rgba(255,248,232,0.72);
+    }
+
+    @keyframes warpFade {
+      0% { opacity: 0; }
+      12% { opacity: 1; }
+      78% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes ringTravel {
+      from { transform: translate(-50%, -50%) scale(0.45); opacity: 0.55; }
+      to { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
+    }
+
+    @keyframes tunnelSpin {
+      from { transform: scale(0.7) rotate(0deg); opacity: 0; }
+      45% { opacity: 0.9; }
+      to { transform: scale(1.55) rotate(-150deg); opacity: 0.2; }
+    }
+
+    @keyframes yearRush {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(2.8); filter: blur(8px); }
+      35% { opacity: 0.75; }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.25); filter: blur(0); }
+    }
+
+    @keyframes messageArrive {
+      0% { opacity: 0; transform: translateY(12px) scale(0.96); }
+      24% { opacity: 1; transform: translateY(0) scale(1); }
+      78% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    }
+</style>
 </head>
 <body>
   <div class="progress-line" id="progressLine"></div>
+  <div class="time-warp" id="timeWarp" aria-hidden="true">
+    <div class="warp-rings"></div>
+    <div class="warp-tunnel"></div>
+    <div class="warp-years">
+      <span>2026</span>
+      <span>1904</span>
+      <span>1899</span>
+      <span>1898</span>
+      <span>1897</span>
+      <span>1896</span>
+    </div>
+    <div class="warp-message">
+      <strong>시간을 거슬러 갑니다</strong>
+      <p>조선 말기와 대한제국의 선택 속으로</p>
+    </div>
+  </div>
 
   <header class="topbar">
     <nav class="nav">
@@ -780,7 +998,7 @@
             “역사를 왜 배우는가”라는 질문에 접근합니다.
           </p>
           <div class="next-row">
-            <button class="main-btn" onclick="nextSlide()">발표 시작하기 →</button>
+            <button class="main-btn" onclick="startTimeTravel()">발표 시작하기 →</button>
             <button class="ghost-btn" onclick="goTo(10)">마지막 결론 미리보기</button>
           </div>
         </div>
@@ -1301,6 +1519,26 @@
   function nextSlide() { goTo(current + 1); }
   function prevSlide() { goTo(current - 1); }
 
+  function startTimeTravel() {
+    const warp = document.getElementById('timeWarp');
+    if (!warp) {
+      nextSlide();
+      return;
+    }
+
+    warp.classList.remove('active');
+    void warp.offsetWidth;
+    warp.classList.add('active');
+
+    window.setTimeout(function() {
+      nextSlide();
+    }, 1180);
+
+    window.setTimeout(function() {
+      warp.classList.remove('active');
+    }, 1700);
+  }
+
   function getTopLens() {
     const entries = Object.entries(state.scores);
     const max = Math.max.apply(null, entries.map(function(entry) { return entry[1]; }));
@@ -1450,6 +1688,7 @@
   window.goTo = goTo;
   window.nextSlide = nextSlide;
   window.prevSlide = prevSlide;
+  window.startTimeTravel = startTimeTravel;
   window.resetPresentation = resetPresentation;
 
   updateStatus();
