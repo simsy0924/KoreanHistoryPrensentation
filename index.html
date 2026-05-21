@@ -531,11 +531,64 @@
       margin-top: 1rem;
     }
 
+    .visual-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .figure-card {
+      margin: 0;
+      background: rgba(245,234,210,0.075);
+      border: 1px solid var(--line);
+      border-radius: 1.35rem;
+      overflow: hidden;
+      color: rgba(255,248,232,0.78);
+    }
+
+    .figure-card img,
+    .person-photo {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+      background: rgba(245,234,210,0.08);
+      filter: sepia(0.08) contrast(1.03);
+    }
+
+    .figure-card img {
+      aspect-ratio: 4 / 3;
+    }
+
+    .figure-card figcaption {
+      padding: 0.85rem;
+      font-size: 0.9rem;
+    }
+
+    .figure-card strong {
+      display: block;
+      color: var(--paper);
+      margin-bottom: 0.25rem;
+    }
+
+    .person-photo {
+      height: 170px;
+      border-radius: 1rem;
+      margin-bottom: 0.9rem;
+      object-position: top center;
+    }
+
+    .image-note {
+      font-size: 0.82rem;
+      color: rgba(255,248,232,0.55);
+      margin-top: 0.7rem;
+    }
+
     @media (max-width: 980px) {
       .nav { grid-template-columns: 1fr; }
       .mini-status { justify-content: flex-start; }
       .nav-actions { justify-content: flex-start; }
-      .slide-grid, .grid-2, .grid-3, .grid-4, .person-grid { grid-template-columns: 1fr; }
+      .slide-grid, .grid-2, .grid-3, .grid-4, .person-grid, .visual-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 560px) {
@@ -702,6 +755,22 @@
           <article class="fact-card"><span class="tag">헌의 6조</span><h3>의회적 개혁</h3><p>관민공동회에서 국정 개혁과 의회 설립의 가능성이 제기되었습니다.</p></article>
         </div>
 
+        <div class="visual-grid">
+          <figure class="figure-card">
+            <img src="assets/images/독립문.jpg" alt="독립문 사진">
+            <figcaption><strong>독립문</strong>자주독립의 상징. 단, 상징 하나만으로 독립협회의 전체 성격을 설명할 수는 없습니다.</figcaption>
+          </figure>
+          <figure class="figure-card">
+            <img src="assets/images/독립신문.jpg" alt="독립신문 이미지">
+            <figcaption><strong>독립신문</strong>한글 중심의 신문은 더 많은 사람이 정치와 사회 문제를 접하는 통로가 되었습니다.</figcaption>
+          </figure>
+          <figure class="figure-card">
+            <img src="assets/images/만민 공동회.png" alt="만민공동회 사진 자료">
+            <figcaption><strong>만민공동회</strong>민중이 공개적으로 정치 의견을 표현한 장면을 보여주는 핵심 자료입니다.</figcaption>
+          </figure>
+        </div>
+        <p class="image-note">이미지 파일 위치: assets/images/독립문.jpg · 독립신문.jpg · 만민 공동회.png</p>
+
         <div class="paper" style="margin-top: 1rem;">
           <h3>여기까지 보면 독립협회는 매우 긍정적으로 보입니다.</h3>
           <p>
@@ -762,6 +831,11 @@
               그렇다면 “민중”은 항상 같은 정치적 방향을 가질까요?
             </p>
           </div>
+          <figure class="figure-card" style="margin-top: 1rem;">
+            <img src="assets/images/황국협회.jpg" alt="황국협회 관련 자료">
+            <figcaption><strong>황국협회</strong>독립협회와 충돌한 보부상 기반 조직. “또 다른 민중”이라는 관점에서 재조명합니다.</figcaption>
+          </figure>
+          <p class="image-note">이미지 파일 위치: assets/images/황국협회.jpg</p>
         </div>
 
         <div class="choice-panel" data-question="hwangguk">
@@ -791,6 +865,17 @@
             <div class="dark-card"><span class="tag">성과</span><h3>국가 주도 근대화</h3><p>토지 조사, 전기·전차·통신, 상공업 진흥, 군제 개편 등.</p></div>
             <div class="dark-card"><span class="tag">한계</span><h3>황제권 중심</h3><p>민중 참여 기반이 약했고, 재정 운영과 외세 압박의 한계가 컸습니다.</p></div>
           </div>
+          <div class="visual-grid">
+            <figure class="figure-card">
+              <img src="assets/images/고종.webp" alt="대한제국기 고종 사진">
+              <figcaption><strong>황제 중심 국가</strong>광무개혁은 근대화 시도이면서 동시에 황제권 강화와 연결됩니다.</figcaption>
+            </figure>
+            <figure class="figure-card">
+              <img src="assets/images/광무개혁 열차.jpg" alt="광무개혁기 전차 사진">
+              <figcaption><strong>도시 근대화</strong>전차·전기·통신 같은 변화는 광무개혁의 근대화 측면을 보여줍니다.</figcaption>
+            </figure>
+          </div>
+          <p class="image-note">이미지 파일 위치: assets/images/고종.webp · 광무개혁 열차.jpg</p>
         </div>
 
         <div class="choice-panel" data-question="gwangmu">
@@ -819,6 +904,7 @@
         <div class="person-grid">
           <article class="person-card">
             <div>
+              <img class="person-photo" src="assets/images/서재필.jpg" alt="서재필 관련 인물 사진">
               <span class="tag">서재필</span>
               <h3>계몽가이자 외부자의 시선</h3>
               <p>독립신문과 독립협회를 통해 자주독립과 계몽을 이끌었습니다.</p>
@@ -829,6 +915,7 @@
 
           <article class="person-card">
             <div>
+              <img class="person-photo" src="assets/images/윤치호.webp" alt="윤치호 관련 인물 사진">
               <span class="tag">윤치호</span>
               <h3>민권 운동가에서 친일 인사로</h3>
               <p>독립협회와 만민공동회 활동에 참여하며 근대 정치 참여를 주장했습니다.</p>
@@ -839,6 +926,7 @@
 
           <article class="person-card">
             <div>
+              <img class="person-photo" src="assets/images/이완용.jpg" alt="이완용 관련 인물 사진">
               <span class="tag">이완용</span>
               <h3>독립협회 참여라는 불편한 사실</h3>
               <p>훗날 대표적 매국 인물로 평가되지만, 초기에는 독립협회 활동에 참여한 적이 있습니다.</p>
@@ -1016,179 +1104,4 @@
         }
       }
 
-      state.answers[question] = option;
-      state.labels[question] = label;
-      state.increments[question] = inc || {};
-
-      for (const [key, value] of Object.entries(inc || {})) {
-        state.scores[key] += value;
-      }
-
-      state.history = Object.keys(state.labels).map((key) => ({ question: key, label: state.labels[key] }));
-
-      const panel = document.querySelector(`[data-question="${question}"]`);
-      if (panel) {
-        panel.querySelectorAll('.choice-btn').forEach((btn) => btn.classList.remove('selected'));
-        const clicked = Array.from(panel.querySelectorAll('.choice-btn')).find((btn) => btn.getAttribute('onclick')?.includes(`'${option}'`));
-        if (clicked) clicked.classList.add('selected');
-      }
-
-      const fb = document.getElementById(`feedback-${question}`);
-      if (fb && feedbacks[question] && feedbacks[question][option]) {
-        const [title, body] = feedbacks[question][option];
-        fb.innerHTML = `<strong>${title}</strong>${body}`;
-        fb.classList.add('visible');
-      }
-
-      updateStatus();
-      renderDynamicContent();
-    }
-
-    function goTo(index) {
-      current = Math.max(0, Math.min(index, slides.length - 1));
-      slides.forEach((slide, i) => slide.classList.toggle('active', i === current));
-      updateStatus();
-      renderDynamicContent();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function nextSlide() { goTo(current + 1); }
-    function prevSlide() { goTo(current - 1); }
-
-    function getTopLens() {
-      const entries = Object.entries(state.scores);
-      const max = Math.max(...entries.map(([, value]) => value));
-      if (max <= 0) return ['none', 0];
-      return entries.sort((a, b) => b[1] - a[1])[0];
-    }
-
-    function lensName(key) {
-      return {
-        citizen: '민권·여론 중심',
-        emperor: '황권·국가 중심',
-        realism: '현실·생존 중심',
-        complexity: '복합 판단 중심',
-        none: '아직 형성 중'
-      }[key] || '아직 형성 중';
-    }
-
-    function updateStatus() {
-      document.getElementById('slideStatus').textContent = `${current + 1} / ${slides.length}`;
-      const [topKey] = getTopLens();
-      document.getElementById('lensStatus').textContent = `학급 관점: ${lensName(topKey)}`;
-      document.getElementById('choiceCount').textContent = `선택 기록 ${Object.keys(state.answers).length}개`;
-      document.getElementById('progressLine').style.width = `${(current / (slides.length - 1)) * 100}%`;
-    }
-
-    function renderDynamicContent() {
-      const whyReflection = document.getElementById('whyReflection');
-      if (whyReflection) {
-        const label = state.labels.why;
-        whyReflection.innerHTML = label
-          ? `<h3>첫 선택 반영</h3><p>우리 반은 역사를 배우는 이유로 <strong>“${label}”</strong>를 선택했습니다. 이제 이 관점을 가지고 독립협회와 광무개혁을 살펴봅니다.</p>`
-          : `<h3>첫 선택 반영</h3><p>아직 첫 질문의 선택이 없습니다. 이전 화면에서 학생들의 답을 입력하면 여기에 반영됩니다.</p>`;
-      }
-
-      const leadReflection = document.getElementById('leadReflection');
-      if (leadReflection) {
-        const option = state.answers.lead;
-        const messages = {
-          citizen: '우리 반이 민중과 여론을 선택했다면, 독립협회의 만민공동회와 헌의 6조가 특히 중요해집니다. 하지만 민중 참여에도 한계와 충돌이 있었음을 함께 봐야 합니다.',
-          emperor: '우리 반이 강한 황제와 국가를 선택했다면, 광무개혁의 국가 주도 근대화가 설득력 있게 보일 수 있습니다. 그러나 권력 집중의 위험도 함께 보아야 합니다.',
-          balance: '우리 반이 균형 외교를 선택했다면, 독립협회와 광무개혁 모두 외세 압박 속에서 선택지가 제한되었다는 점을 중심으로 볼 수 있습니다.',
-          industry: '우리 반이 군사·산업 근대화를 선택했다면, 광무개혁의 실력 양성 시도가 중요해집니다. 다만 정치 개혁 없는 근대화가 충분했는지도 질문해야 합니다.'
-        };
-        leadReflection.textContent = messages[option] || '앞선 질문에서 어떤 개혁 주체를 선택했는지에 따라, 독립협회와 광무개혁의 의미가 다르게 보입니다.';
-      }
-
-      renderHistory();
-      renderMeters();
-      renderFinalNotes();
-    }
-
-    function renderHistory() {
-      const list = document.getElementById('routeHistory');
-      if (!list) return;
-      const names = {
-        why: '역사를 배우는 이유',
-        lead: '개혁 주체',
-        independence: '독립협회 평가',
-        hwangguk: '황국협회 평가',
-        gwangmu: '광무개혁 평가',
-        people: '인물 평가',
-        final: '최종 시대 해석'
-      };
-      const keys = ['why','lead','independence','hwangguk','gwangmu','people','final'].filter((key) => state.labels[key]);
-      list.innerHTML = keys.length
-        ? keys.map((key) => `<li><strong>${names[key]}</strong>: ${state.labels[key]}</li>`).join('')
-        : '<li>아직 기록된 선택이 없습니다.</li>';
-    }
-
-    function renderMeters() {
-      const max = Math.max(1, ...Object.values(state.scores));
-      for (const key of ['citizen','emperor','realism','complexity']) {
-        const score = Math.max(0, state.scores[key]);
-        const scoreEl = document.getElementById(`score-${key}`);
-        const meterEl = document.getElementById(`meter-${key}`);
-        if (scoreEl) scoreEl.textContent = score;
-        if (meterEl) meterEl.style.width = `${Math.min(100, (score / max) * 100)}%`;
-      }
-
-      const routeInterpretation = document.getElementById('routeInterpretation');
-      if (routeInterpretation) {
-        const [topKey] = getTopLens();
-        const text = {
-          citizen: '<strong>현재 흐름: 민권·여론 중심</strong>우리 반은 독립협회의 가능성과 민중 참여의 의미를 비교적 중요하게 보고 있습니다.',
-          emperor: '<strong>현재 흐름: 황권·국가 중심</strong>우리 반은 위기 상황에서 국가 주도 개혁과 강한 통치력을 비교적 중요하게 보고 있습니다.',
-          realism: '<strong>현재 흐름: 현실·생존 중심</strong>우리 반은 외세 압박과 생존 조건, 결과적 실패의 원인을 비교적 중요하게 보고 있습니다.',
-          complexity: '<strong>현재 흐름: 복합 판단 중심</strong>우리 반은 한쪽을 정답으로 고르기보다 가능성과 한계를 함께 보려는 흐름이 강합니다.',
-          none: '<strong>아직 선택이 충분하지 않습니다.</strong>질문에 답하면 우리 반의 관점 흐름이 여기에 표시됩니다.'
-        };
-        routeInterpretation.innerHTML = text[topKey] || text.none;
-      }
-    }
-
-    function renderFinalNotes() {
-      const [topKey] = getTopLens();
-      const finalLeadNote = document.getElementById('finalLeadNote');
-      if (finalLeadNote) {
-        const text = {
-          citizen: '<h3>현재 우리 반은 민권과 여론에 주목하고 있습니다.</h3><p>마지막 질문에서는 독립협회의 가능성뿐 아니라 그 한계까지 포함해서 판단해봅니다.</p>',
-          emperor: '<h3>현재 우리 반은 국가 주도 개혁에 주목하고 있습니다.</h3><p>마지막 질문에서는 광무개혁의 성과뿐 아니라 황제권 강화의 문제까지 포함해서 판단해봅니다.</p>',
-          realism: '<h3>현재 우리 반은 현실 조건과 생존 문제에 주목하고 있습니다.</h3><p>마지막 질문에서는 내부 한계와 외세 압박이 개혁을 어떻게 좌절시켰는지 생각해봅니다.</p>',
-          complexity: '<h3>현재 우리 반은 복합적 판단에 가까워지고 있습니다.</h3><p>마지막 질문에서는 이 시대를 하나의 정답이 아니라 여러 선택의 충돌로 설명할 수 있는지 생각해봅니다.</p>',
-          none: '<h3>아직 뚜렷한 흐름이 없습니다.</h3><p>앞선 질문들의 답을 입력하면 마지막 질문의 안내 문구가 바뀝니다.</p>'
-        };
-        finalLeadNote.innerHTML = text[topKey] || text.none;
-      }
-
-      const closingLead = document.getElementById('closingLead');
-      const closingRoute = document.getElementById('closingRoute');
-      if (closingLead && closingRoute) {
-        closingLead.textContent = `우리 반의 선택 흐름은 “${lensName(topKey)}”에 가장 가까웠습니다.`;
-        const chosenFinal = state.labels.final ? `마지막으로 우리 반은 “${state.labels.final}”를 선택했습니다.` : '마지막 선택은 아직 기록되지 않았습니다.';
-        closingRoute.innerHTML = `<strong>${chosenFinal}</strong> 하지만 이 발표의 결론은 특정 선택 하나가 정답이라는 뜻이 아닙니다. 독립협회, 광무개혁, 황국협회, 그리고 여러 인물의 행적을 함께 보면 역사는 선악의 표가 아니라 판단을 훈련하는 질문지가 됩니다.`;
-      }
-    }
-
-    function resetPresentation() {
-      for (const key of Object.keys(state.answers)) delete state.answers[key];
-      for (const key of Object.keys(state.labels)) delete state.labels[key];
-      for (const key of Object.keys(state.increments)) delete state.increments[key];
-      state.history = [];
-      state.scores = { citizen: 0, emperor: 0, realism: 0, complexity: 0 };
-      document.querySelectorAll('.choice-btn').forEach((btn) => btn.classList.remove('selected'));
-      document.querySelectorAll('.feedback').forEach((fb) => { fb.classList.remove('visible'); fb.innerHTML = ''; });
-      goTo(0);
-    }
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'ArrowRight') nextSlide();
-      if (event.key === 'ArrowLeft') prevSlide();
-    });
-
-    updateStatus();
-    renderDynamicContent();
-  </script>
-</body>
-</html>
+      state.answers[que
