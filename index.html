@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>역사는 흑백이 아니다 | 선택형 발표 웹사이트</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800;900&family=Noto+Serif+KR:wght@600;700;900&display=swap');
     :root {
       --bg: #100e0b;
       --bg-2: #1b150f;
@@ -29,7 +30,7 @@
 
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
         radial-gradient(circle at 10% 0%, rgba(201, 154, 58, 0.22), transparent 34rem),
         radial-gradient(circle at 90% 15%, rgba(141, 47, 39, 0.18), transparent 28rem),
@@ -163,7 +164,11 @@
       font-weight: 800;
     }
 
-    h1, h2, h3 { letter-spacing: -0.065em; }
+    h1, h2, h3 {
+      letter-spacing: -0.065em;
+      font-family: "Noto Serif KR", "Noto Sans KR", serif;
+      word-break: keep-all;
+    }
 
     h1 {
       font-size: clamp(3.4rem, 8vw, 7rem);
@@ -531,6 +536,88 @@
       margin-top: 1rem;
     }
 
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .doc-card {
+      background: rgba(245,234,210,0.075);
+      border: 1px solid var(--line);
+      border-radius: 1.3rem;
+      padding: 1rem;
+      color: rgba(255,248,232,0.8);
+    }
+
+    .doc-card h3 {
+      color: var(--paper);
+      margin-bottom: 0.45rem;
+      font-size: 1.2rem;
+    }
+
+    .doc-card p {
+      margin: 0.35rem 0;
+    }
+
+    .doc-card .mini-source,
+    .mini-source {
+      display: block;
+      margin-top: 0.7rem;
+      color: rgba(255,248,232,0.52);
+      font-size: 0.82rem;
+    }
+
+    .term-row {
+      display: grid;
+      grid-template-columns: 8rem 1fr;
+      gap: 0.8rem;
+      padding: 0.7rem 0;
+      border-bottom: 1px dashed rgba(40,31,23,0.16);
+    }
+
+    .term-row:last-child {
+      border-bottom: 0;
+    }
+
+    .term-row strong {
+      color: var(--red);
+      font-weight: 950;
+    }
+
+    .compact-list {
+      margin: 0;
+      padding-left: 1.1rem;
+    }
+
+    .compact-list li {
+      margin: 0.32rem 0;
+    }
+
+    .stance-card {
+      background: var(--paper);
+      color: var(--ink);
+      border-radius: 1.3rem;
+      padding: 1.1rem;
+      box-shadow: 0 18px 48px rgba(0,0,0,0.18);
+    }
+
+    .stance-card h3 {
+      color: var(--ink);
+    }
+
+    .stance-label {
+      display: inline-flex;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(141,47,39,0.12);
+      color: var(--red);
+      font-weight: 900;
+      margin-bottom: 0.7rem;
+      font-size: 0.85rem;
+    }
+
     .visual-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -739,7 +826,7 @@
       .nav { grid-template-columns: 1fr; }
       .mini-status { justify-content: flex-start; }
       .nav-actions { justify-content: flex-start; }
-      .slide-grid, .grid-2, .grid-3, .grid-4, .person-grid, .visual-grid { grid-template-columns: 1fr; }
+      .slide-grid, .grid-2, .grid-3, .grid-4, .person-grid, .visual-grid, .doc-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 560px) {
@@ -996,6 +1083,94 @@
       68% { opacity: 0.92; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
       100% { opacity: 0; transform: translate(-50%, -50%) scale(0.62); filter: blur(2px); }
     }
+
+    /* 인용문 디자인 개선 */
+    .quote-feature {
+      position: relative;
+      padding: clamp(1.35rem, 3.2vw, 2.5rem);
+      background:
+        linear-gradient(135deg, rgba(245,234,210,0.13), rgba(201,154,58,0.06)),
+        #241b13;
+      border: 1px solid rgba(245,234,210,0.2);
+      overflow: hidden;
+    }
+
+    .quote-feature::before {
+      content: "“";
+      position: absolute;
+      right: 1.3rem;
+      top: -1.6rem;
+      font-family: "Noto Serif KR", serif;
+      font-size: clamp(6rem, 16vw, 12rem);
+      line-height: 1;
+      color: rgba(201,154,58,0.16);
+      pointer-events: none;
+    }
+
+    .quote-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 1rem;
+      padding: 0.3rem 0.72rem;
+      border-radius: 999px;
+      background: rgba(201,154,58,0.16);
+      color: var(--paper-2);
+      border: 1px solid rgba(201,154,58,0.28);
+      font-size: 0.9rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+
+    .quote-main {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 0.18rem;
+      margin: 0;
+      color: var(--paper);
+      font-family: "Noto Serif KR", serif;
+      font-size: clamp(2rem, 4.2vw, 4.25rem);
+      line-height: 1.16;
+      letter-spacing: -0.07em;
+      word-break: keep-all;
+    }
+
+    .quote-main span {
+      font-weight: 700;
+      color: rgba(245,234,210,0.78);
+    }
+
+    .quote-main strong {
+      display: block;
+      font-weight: 900;
+      color: var(--paper);
+      text-shadow: 0 10px 34px rgba(0,0,0,0.34);
+    }
+
+    .quote-main strong:nth-of-type(2) {
+      color: #f3c86d;
+    }
+
+    .quote-sub {
+      position: relative;
+      z-index: 1;
+      margin: 1rem 0 0;
+      padding-left: 0.9rem;
+      border-left: 4px solid rgba(201,154,58,0.72);
+      color: rgba(255,248,232,0.68);
+      font-size: 1rem;
+    }
+
+    .quote-feature.compact .quote-main {
+      font-size: clamp(2rem, 4vw, 3.6rem);
+    }
+
+    @media (max-width: 560px) {
+      .quote-main {
+        font-size: clamp(1.85rem, 9vw, 3rem);
+      }
+    }
 </style>
 </head>
 <body>
@@ -1071,8 +1246,15 @@
           <p class="lead">
             첫 질문은 발표 전체의 출발점입니다. 학생들이 어떤 관점으로 역사를 보고 있는지 먼저 확인합니다.
           </p>
-          <div class="quote-card">
-            <p class="quote">역사는 정답을 외우기 위해서가 아니라,<br />쉽게 판단하지 않기 위해 배운다.</p>
+          <div class="quote-card quote-feature">
+            <div class="quote-label">핵심 문장</div>
+            <p class="quote-main">
+              <span>역사는</span>
+              <strong>정답을 외우기 위해서가 아니라,</strong>
+              <strong>쉽게 판단하지 않기 위해</strong>
+              <span>배운다.</span>
+            </p>
+            <p class="quote-sub">오늘 발표의 기준: 선악 판정이 아니라, 선택의 조건을 따져보기</p>
           </div>
         </div>
 
@@ -1124,10 +1306,42 @@
       </div>
     </section>
 
+    <section class="slide" data-slide="empire-origin">
+      <div class="wrap slide-grid">
+        <div>
+          <div class="slide-kicker">3단계 · 아관파천에서 대한제국으로</div>
+          <h2>독립을 말했지만, 출발은 의존이었다</h2>
+          <p class="lead">
+            아관파천은 고종의 안전을 확보했지만 국가의 자주성을 손상시켰고, 열강의 이권 침탈이 심해지는 배경이 되었습니다.
+            이 모순 속에서 독립협회와 대한제국이 함께 등장합니다.
+          </p>
+          <div class="paper">
+            <div class="term-row"><strong>아관파천</strong><span>1896년 고종이 러시아 공사관으로 피신한 사건. 반일 분위기 속에서 일어난 선택이었지만, 외세 의존이라는 한계도 남겼습니다.</span></div>
+            <div class="term-row"><strong>환궁</strong><span>1897년 고종은 경운궁으로 돌아와 새로운 국가 체제 구상을 본격화했습니다.</span></div>
+            <div class="term-row"><strong>광무 연호</strong><span>1897년 새 연호로 ‘광무’를 사용하며 황제 즉위와 대한제국 선포의 사전 준비가 진행되었습니다.</span></div>
+            <div class="term-row"><strong>대한제국</strong><span>1897년 10월 고종은 황제 즉위식을 거행하고 국호를 ‘대한’으로 바꾸어 자주 독립국임을 내세웠습니다.</span></div>
+          </div>
+        </div>
+
+        <div class="choice-panel" data-question="empire-origin">
+          <h3>손들기 질문</h3>
+          <p class="desc">아관파천 이후 대한제국 수립은 어떤 의미가 더 컸을까요?</p>
+          <div class="choices">
+            <button class="choice-btn" onclick="choose('empire-origin','independence','자주국 선포', {emperor:1, realism:1})"><span class="choice-number">1</span><span>외세 속에서 자주국임을 선포한 선택</span></button>
+            <button class="choice-btn" onclick="choose('empire-origin','dependence','외세 의존의 결과', {realism:2})"><span class="choice-number">2</span><span>러시아 의존과 열강 간섭이 만든 불안정한 결과</span></button>
+            <button class="choice-btn" onclick="choose('empire-origin','both','둘 다', {complexity:3})"><span class="choice-number">3</span><span>자주국 선포이면서 동시에 외세 의존의 역설</span></button>
+            <button class="choice-btn" onclick="choose('empire-origin','unclear','판단 보류', {complexity:1})"><span class="choice-number">4</span><span>자료를 더 보고 판단해야 한다</span></button>
+          </div>
+          <div class="feedback" id="feedback-empire-origin"></div>
+          <div class="next-row"><button class="main-btn" onclick="nextSlide()">다음: 개혁 주체 선택 →</button></div>
+        </div>
+      </div>
+    </section>
+
     <section class="slide" data-slide="lead">
       <div class="wrap slide-grid">
         <div>
-          <div class="slide-kicker">3단계 · 발표의 관점 정하기</div>
+          <div class="slide-kicker">4단계 · 발표의 관점 정하기</div>
           <h2>근대화는 누가 이끌어야 했을까?</h2>
           <p class="lead">
             이 선택은 이후 독립협회와 광무개혁을 보는 시각을 바꿉니다. 학생들이 많이 고른 답을 누르세요.
@@ -1157,9 +1371,59 @@
       </div>
     </section>
 
+    <section class="slide" data-slide="independence-documents">
+      <div class="wrap">
+        <div class="slide-kicker">5단계 · 독립협회를 사료로 보기</div>
+        <h2>신문, 회보, 상소문: 여론이 정치가 되다</h2>
+        <p class="lead">
+          독립협회의 활동은 독립문이나 만민공동회만으로 끝나지 않습니다. 신문·잡지·상소문을 통해 여론을 만들고, 그 여론을 정치 제도 개혁 요구로 연결했습니다.
+        </p>
+
+        <div class="doc-grid">
+          <article class="doc-card">
+            <span class="tag">대조선독립협회회보</span>
+            <h3>독립협회의 공식 목소리</h3>
+            <p>1896년 11월 30일 창간된 독립협회 회보로, 근대 문명과 과학 지식을 소개하며 계몽적 성격을 보였습니다.</p>
+            <p>신문보다 더 ‘단체의 생각’을 정리해 보여주는 자료로 활용할 수 있습니다.</p>
+            <span class="mini-source">자료 포인트: 최초의 근대 잡지, 독립협회의 공식 의견, 계몽과 문명개화</span>
+          </article>
+
+          <article class="doc-card">
+            <span class="tag">구국 운동 상소문</span>
+            <h3>토론에서 상소로</h3>
+            <p>1898년 7월 독립협회는 윤치호 등의 이름으로 상소를 올려 의회 설치를 요청했습니다.</p>
+            <p>이후 홍범 14조와 새 율령의 시행을 요구하며, 민권 보장과 정치 개혁 요구를 제도화하려 했습니다.</p>
+            <span class="mini-source">자료 포인트: 의회 설치 요구, 법치와 자유권, 민권 보장 운동</span>
+          </article>
+
+          <article class="doc-card">
+            <span class="tag">헌의 6조</span>
+            <h3>관민공동회의 결론</h3>
+            <p>1898년 10월 관민공동회에서 결의된 국정 개혁안입니다. 민중과 관료가 함께 논의했다는 점이 중요합니다.</p>
+            <p>하지만 1조가 ‘전제황권을 굳건히 한다’는 표현을 담고 있어, 오늘날 민주주의와 단순히 같다고 보기는 어렵습니다.</p>
+            <span class="mini-source">자료 포인트: 국권 수호, 민권 보장, 재정 공개, 중추원과 의회적 개혁</span>
+          </article>
+        </div>
+
+        <div class="paper" style="margin-top: 1rem;">
+          <h3>헌의 6조 핵심 정리</h3>
+          <ul class="compact-list">
+            <li>외국인에게 의지하지 말고 관민이 힘을 합쳐 황권을 굳건히 할 것</li>
+            <li>광산·철도·석탄·산림·차관·차병 관련 조약은 대신과 중추원 의장의 서명 없이는 시행하지 말 것</li>
+            <li>전국 재정은 탁지부가 맡고 예산과 결산을 공개할 것</li>
+            <li>중대한 범죄는 공판 절차와 충분한 설명을 거쳐 처리할 것</li>
+            <li>칙임관 임명은 정부 자문과 과반수 찬성을 거칠 것</li>
+            <li>정해진 규정을 실제로 시행할 것</li>
+          </ul>
+          <div class="route-note"><strong>해석 포인트</strong>헌의 6조는 민권과 법치를 향한 요구였지만, 동시에 황제권 자체를 부정하지는 않았습니다. 이 양면성이 발표의 핵심입니다.</div>
+          <div class="next-row"><button class="main-btn" onclick="nextSlide()">다음: 독립협회의 빛 →</button></div>
+        </div>
+      </div>
+    </section>
+
     <section class="slide" data-slide="independence-light">
       <div class="wrap">
-        <div class="slide-kicker">4단계 · 독립협회의 밝은 면</div>
+        <div class="slide-kicker">6단계 · 독립협회의 밝은 면</div>
         <h2>민권과 자주독립의 가능성</h2>
         <p class="lead" id="leadReflection">개혁 주체 선택이 여기에 반영됩니다.</p>
 
@@ -1199,7 +1463,7 @@
     <section class="slide" data-slide="independence-shadow">
       <div class="wrap slide-grid">
         <div>
-          <div class="slide-kicker">5단계 · 독립협회 재조명</div>
+          <div class="slide-kicker">7단계 · 독립협회 재조명</div>
           <h2>독립협회는 민주주의 단체였을까?</h2>
           <p class="lead">
             독립협회는 민권을 말했지만, 오늘날의 민주주의와 완전히 같았다고 보기는 어렵습니다.
@@ -1231,10 +1495,54 @@
       </div>
     </section>
 
+    <section class="slide" data-slide="jungchuwon">
+      <div class="wrap slide-grid">
+        <div>
+          <div class="slide-kicker">8단계 · 중추원과 의회 설립 운동</div>
+          <h2>중추원은 의회가 될 수 있었을까?</h2>
+          <p class="lead">
+            독립협회는 중추원을 단순 자문기관이 아니라 입법·조약 비준·정책 심사 기능을 가진 의회적 기구로 바꾸려 했습니다.
+            그러나 실제 구성과 운영 과정에서 황제권과 보수 세력의 견제가 강하게 작동했습니다.
+          </p>
+          <div class="paper">
+            <div class="term-row"><strong>중추원</strong><span>본래 왕권을 보좌하는 자문기관적 성격이 강했지만, 독립협회는 이를 의회적 기관으로 개편하려 했습니다.</span></div>
+            <div class="term-row"><strong>중추원 관제</strong><span>1898년 11월 새 관제는 입법권·조약 비준권·정부 정책 심사권과 건의권을 가진 의회적 기능을 담았습니다.</span></div>
+            <div class="term-row"><strong>한계</strong><span>직접 선거는 없었고, 의관 선임 방식도 정부와 독립협회 세력의 타협 속에서 이루어졌습니다.</span></div>
+            <div class="term-row"><strong>좌절</strong><span>이후 관제가 재개정되고, 의관 구성에서 독립협회·만민공동회 계열은 소수에 머물면서 의회화 가능성은 약해졌습니다.</span></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="dark-card">
+            <h3>중추원 의관 50명 구성의 의미</h3>
+            <ul class="compact-list">
+              <li>독립협회·만민공동회 계열: 17명</li>
+              <li>황국협회 계열: 16명</li>
+              <li>황제파 계열: 17명</li>
+            </ul>
+            <p style="margin-top: 0.9rem;">겉으로는 관제를 실시하는 듯했지만, 실제로는 황제파와 황국협회 계열이 우세한 구조였습니다.</p>
+          </div>
+
+          <div class="choice-panel" data-question="jungchuwon" style="margin-top: 1rem;">
+            <h3>손들기 질문</h3>
+            <p class="desc">중추원 개편은 어느 쪽에 더 가까웠을까요?</p>
+            <div class="choices">
+              <button class="choice-btn" onclick="choose('jungchuwon','assembly','의회 정치의 시작', {citizen:2})"><span class="choice-number">1</span><span>의회 정치의 시작</span></button>
+              <button class="choice-btn" onclick="choose('jungchuwon','control','황제권의 통제 장치', {emperor:2})"><span class="choice-number">2</span><span>황제권의 통제 장치</span></button>
+              <button class="choice-btn" onclick="choose('jungchuwon','both','가능성과 좌절이 함께 있음', {complexity:3})"><span class="choice-number">3</span><span>가능성과 좌절이 함께 있었다</span></button>
+              <button class="choice-btn" onclick="choose('jungchuwon','unclear','판단 보류', {complexity:1})"><span class="choice-number">4</span><span>자료를 더 봐야 한다</span></button>
+            </div>
+            <div class="feedback" id="feedback-jungchuwon"></div>
+            <div class="next-row"><button class="main-btn" onclick="nextSlide()">다음: 황국협회 보기 →</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="slide" data-slide="hwangguk">
       <div class="wrap slide-grid">
         <div>
-          <div class="slide-kicker">6단계 · 반대편 살펴보기</div>
+          <div class="slide-kicker">9단계 · 반대편 살펴보기</div>
           <h2>황국협회는 단순한 악역이었을까?</h2>
           <p class="lead">
             황국협회는 독립협회와 충돌했고 만민공동회 탄압에 동원되었습니다. 하지만 보부상이라는 민중 기반도 있었습니다.
@@ -1271,7 +1579,7 @@
     <section class="slide" data-slide="gwangmu">
       <div class="wrap slide-grid">
         <div>
-          <div class="slide-kicker">7단계 · 광무개혁 재조명</div>
+          <div class="slide-kicker">10단계 · 광무개혁 재조명</div>
           <h2>광무개혁은 근대화였을까, 황제권 강화였을까?</h2>
           <p class="lead">
             광무개혁은 양전·지계, 도시 근대화, 산업·군사 개혁을 추진했지만, 정치적으로는 황제권 강화의 성격도 강했습니다.
@@ -1308,9 +1616,128 @@
       </div>
     </section>
 
+    <section class="slide" data-slide="gwangmu-detail">
+      <div class="wrap">
+        <div class="slide-kicker">11단계 · 광무개혁 세부 내용</div>
+        <h2>구본신참: 옛 질서 위에 새 문물을 얹다</h2>
+        <p class="lead">
+          광무개혁은 ‘구본신참’을 내세웠습니다. 옛 제도를 완전히 무너뜨리기보다, 황제권과 기존 질서를 바탕으로 근대 제도와 기술을 받아들이려 한 것입니다.
+        </p>
+
+        <div class="doc-grid">
+          <article class="doc-card">
+            <span class="tag">정치·법</span>
+            <h3>대한국 국제</h3>
+            <p>1899년 반포된 대한제국의 기본 법규입니다. 자주 독립국임을 밝히는 동시에, 황제에게 강한 통치권을 집중시켰습니다.</p>
+            <p>즉, 자주국가 선언과 전제 황권 강화가 함께 들어 있습니다.</p>
+          </article>
+
+          <article class="doc-card">
+            <span class="tag">군사</span>
+            <h3>원수부 설치와 군제 개혁</h3>
+            <p>황제가 군권을 직접 장악하고 대원수로서 군대를 지휘하려 했습니다. 육군 증설, 해군 제도 마련, 징병제 구상도 포함됩니다.</p>
+            <p>부국강병의 핵심이지만, 동시에 황제권 강화를 보여줍니다.</p>
+          </article>
+
+          <article class="doc-card">
+            <span class="tag">토지</span>
+            <h3>양전 사업과 지계 발급</h3>
+            <p>양지아문을 설치해 토지를 조사하고, 지계아문을 통해 토지 소유권 증명서인 지계를 발급하려 했습니다.</p>
+            <p>근대적 토지 소유권 정리의 의미가 있었지만, 러일전쟁 전후로 중단되었습니다.</p>
+          </article>
+
+          <article class="doc-card">
+            <span class="tag">산업</span>
+            <h3>식산흥업</h3>
+            <p>광산, 철도, 해운, 직물, 금융, 화폐 제도, 회사 설립 등을 통해 근대 경제 기반을 만들려 했습니다.</p>
+            <p>다만 황실 재정 기구 중심으로 운영되며 재정 불투명성과 탁지부 약화 문제가 생겼습니다.</p>
+          </article>
+
+          <article class="doc-card">
+            <span class="tag">문물 수용</span>
+            <h3>전차·전기·통신·교육</h3>
+            <p>전차와 전기, 전신·전화, 근대 학교와 실업 교육 등 새 문물이 도입되었습니다.</p>
+            <p>광무개혁은 정치만이 아니라 도시 생활과 기술 교육의 변화도 포함했습니다.</p>
+          </article>
+
+          <article class="doc-card">
+            <span class="tag">세계 속 대한제국</span>
+            <h3>만국 박람회</h3>
+            <p>1900년 파리 만국박람회에 대한제국은 독립적인 전시관을 세우고 참가했습니다.</p>
+            <p>대한제국이 세계에 스스로를 보여주려 한 상징적 장면으로 사용할 수 있습니다.</p>
+          </article>
+        </div>
+
+        <div class="paper" style="margin-top: 1rem;">
+          <h3>한청 통상 조약까지 연결하기</h3>
+          <p>
+            1899년 한청 통상 조약은 대한제국과 청이 대등한 국가 사이의 조약을 맺었다는 점에서 의미가 있습니다.
+            사대 관계에서 벗어나 근대적 국제 질서 속 자주국가로 인정받으려 한 시도로 볼 수 있습니다.
+          </p>
+          <div class="route-note"><strong>해석 포인트</strong>광무개혁은 “낡은 전제 왕권”과 “근대 국가 건설” 중 하나만이 아니라, 두 성격이 섞인 개혁이었습니다.</div>
+          <div class="next-row"><button class="main-btn" onclick="nextSlide()">다음: 인물과 상소문 재조명 →</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-slide="petitions-contrast">
+      <div class="wrap">
+        <div class="slide-kicker">12단계 · 같은 사건, 다른 상소문</div>
+        <h2>윤치호의 상소와 이문화의 상소</h2>
+        <p class="lead">
+          독립협회 문제를 두고 같은 시대 사람들은 완전히 다른 언어로 현실을 해석했습니다. 이 차이를 보면 “역사는 흑백이 아니다”라는 주제가 더 분명해집니다.
+        </p>
+
+        <div class="grid-2">
+          <article class="stance-card">
+            <span class="stance-label">윤치호·독립협회 쪽 시각</span>
+            <h3>의회 설치와 법치 요구</h3>
+            <p>
+              1898년 7월 독립협회는 윤치호 등의 이름으로 상소를 올려 의회 설치를 요청했습니다.
+              이후에는 홍범 14조와 새 율령의 시행을 요구하며, 정치 개혁과 민권 보장을 주장했습니다.
+            </p>
+            <ul class="compact-list">
+              <li>국민의 신체·재산권 보장</li>
+              <li>언론·집회·출판·결사의 자유</li>
+              <li>의회 설치와 법령 시행 요구</li>
+              <li>보수파 대신 파면과 개혁 정부 요구</li>
+            </ul>
+          </article>
+
+          <article class="stance-card">
+            <span class="stance-label">이문화 등 보수 유생 쪽 시각</span>
+            <h3>전제 황권과 질서 수호</h3>
+            <p>
+              이문화 등은 독립협회를 규탄하는 상소에서, 독립협회가 구미식 공화 정치를 전제 정치에 옮기려 하고
+              대신을 마음대로 몰아내며 국정을 어지럽힌다고 비판했습니다.
+            </p>
+            <ul class="compact-list">
+              <li>상벌권은 임금의 권한이라는 주장</li>
+              <li>공화 정치와 민회 활동에 대한 경계</li>
+              <li>만민공동회를 임금 협박으로 해석</li>
+              <li>남녀노소가 함께 국정을 논하는 것을 질서 붕괴로 봄</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="choice-panel" data-question="petitions" style="margin-top: 1rem;">
+          <h3>손들기 질문</h3>
+          <p class="desc">두 상소문을 비교하면, 갈등의 본질은 무엇에 가까웠을까요?</p>
+          <div class="choices">
+            <button class="choice-btn" onclick="choose('petitions','freedom','민권과 자유의 문제', {citizen:2})"><span class="choice-number">1</span><span>민권과 자유를 둘러싼 갈등</span></button>
+            <button class="choice-btn" onclick="choose('petitions','order','황권과 질서의 문제', {emperor:2})"><span class="choice-number">2</span><span>황권과 사회 질서를 둘러싼 갈등</span></button>
+            <button class="choice-btn" onclick="choose('petitions','worldview','세계관의 충돌', {complexity:3})"><span class="choice-number">3</span><span>근대적 정치관과 전통적 질서관의 충돌</span></button>
+            <button class="choice-btn" onclick="choose('petitions','power','권력 다툼', {realism:2})"><span class="choice-number">4</span><span>정치 세력 간 권력 다툼</span></button>
+          </div>
+          <div class="feedback" id="feedback-petitions"></div>
+          <div class="next-row"><button class="main-btn" onclick="nextSlide()">다음: 인물 재조명 →</button></div>
+        </div>
+      </div>
+    </section>
+
     <section class="slide" data-slide="people">
       <div class="wrap">
-        <div class="slide-kicker">8단계 · 인물 재조명</div>
+        <div class="slide-kicker">13단계 · 인물 재조명</div>
         <h2>한 사람은 하나의 단어로 설명될까?</h2>
         <p class="lead">
           서재필, 윤치호, 이완용은 모두 단순 평가가 어려운 인물들입니다. 발표에서는 “좋다/나쁘다”보다 “선택의 변화”를 봅니다.
@@ -1369,7 +1796,7 @@
     <section class="slide" data-slide="class-route">
       <div class="wrap slide-grid">
         <div>
-          <div class="slide-kicker">9단계 · 지금까지의 선택</div>
+          <div class="slide-kicker">14단계 · 지금까지의 선택</div>
           <h2>우리 반의 역사 판단 흐름</h2>
           <p class="lead">
             지금까지 발표자가 누른 답을 바탕으로, 우리 반이 어떤 관점에 가까웠는지 확인합니다.
@@ -1400,7 +1827,7 @@
     <section class="slide" data-slide="final-choice">
       <div class="wrap slide-grid">
         <div>
-          <div class="slide-kicker">10단계 · 마지막 판단</div>
+          <div class="slide-kicker">15단계 · 마지막 판단</div>
           <h2>그래서, 이 시대의 개혁을 어떻게 볼까?</h2>
           <p class="lead">
             마지막 질문은 발표의 결론을 학생들이 직접 만들어보는 장면입니다.
@@ -1433,8 +1860,13 @@
           <p class="lead" id="closingLead">
             우리 반의 선택을 바탕으로 결론을 정리합니다.
           </p>
-          <div class="quote-card">
-            <p class="quote">역사는 쉽게 판단하지 않기 위해 배운다.</p>
+          <div class="quote-card quote-feature compact">
+            <div class="quote-label">마지막 문장</div>
+            <p class="quote-main">
+              <span>역사는</span>
+              <strong>쉽게 판단하지 않기 위해</strong>
+              <span>배운다.</span>
+            </p>
           </div>
         </div>
 
@@ -1473,6 +1905,12 @@
       present: ['좋은 출발입니다.', '과거의 판단을 살피는 이유는 오늘 우리가 비슷한 문제를 더 신중하게 보기 위해서입니다.'],
       repeat: ['역사의 교훈에 가까운 답입니다.', '단, “반복하지 말자”는 말도 구체적 분석이 없으면 구호가 됩니다. 무엇이 왜 실패했는지 따져봐야 합니다.']
     },
+    'empire-origin': {
+      independence: ['자주국 선포를 강조한 선택입니다.', '대한제국 수립은 국제 질서 속에서 조선이 황제국이자 자주국임을 내세운 사건이었습니다. 다만 출발 배경의 외세 의존도 함께 봐야 합니다.'],
+      dependence: ['외세 의존을 강조한 선택입니다.', '아관파천은 국가의 자주성을 손상시켰고 열강의 이권 침탈을 심화시켰습니다. 그러나 그 뒤의 대한제국 수립은 자주국가를 다시 세우려는 시도이기도 했습니다.'],
+      both: ['핵심 주제와 잘 맞는 선택입니다.', '아관파천 이후 대한제국 수립은 자주 독립의 선언이면서 동시에 외세 의존의 불안정성을 안고 있었습니다.'],
+      unclear: ['판단을 보류한 선택입니다.', '아관파천과 대한제국 수립은 한 문장으로 정리하기 어려운 사건입니다. 배경과 결과를 함께 봐야 합니다.']
+    },
     lead: {
       citizen: ['민권 중심 관점이 강합니다.', '이 관점으로 보면 독립협회의 만민공동회와 헌의 6조가 특히 중요해집니다. 다만 민중 참여가 항상 같은 방향을 뜻하지는 않는다는 점도 봐야 합니다.'],
       emperor: ['국가 주도 관점이 강합니다.', '이 관점으로 보면 광무개혁의 토지·산업·군사 개혁이 중요해집니다. 하지만 강한 국가가 곧 좋은 정치라는 뜻은 아닙니다.'],
@@ -1485,6 +1923,12 @@
       partial: ['가장 복합적인 판단입니다.', '독립협회는 민권 의식을 키운 단체였지만, 동시에 엘리트주의와 외세 인식의 한계를 가진 불완전한 개혁 세력이었습니다.'],
       hold: ['판단을 보류하는 것도 역사적 태도입니다.', '자료가 부족하거나 관점이 충돌할 때는 성급히 결론을 내리지 않는 것이 오히려 좋은 역사 공부가 될 수 있습니다.']
     },
+    jungchuwon: {
+      assembly: ['가능성을 강조한 선택입니다.', '중추원 개편은 의회 정치의 가능성을 보여주었습니다. 다만 직접 선거와 독립적인 권한은 충분하지 않았습니다.'],
+      control: ['한계를 강조한 선택입니다.', '중추원 구성과 관제 재개정 과정은 황제권과 보수 세력의 견제가 강했음을 보여줍니다.'],
+      both: ['복합적 판단입니다.', '중추원은 의회 정치의 가능성과 황제권 중심 질서의 한계를 동시에 보여주는 사례입니다.'],
+      unclear: ['좋은 역사적 태도입니다.', '중추원은 제도 이름만 보고 판단하기 어렵습니다. 관제 내용, 의관 구성, 실제 운영을 함께 봐야 합니다.']
+    },
     hwangguk: {
       villain: ['비판의 근거가 분명한 선택입니다.', '황국협회는 독립협회와 만민공동회를 탄압하는 데 동원되었습니다. 다만 보부상 기반이었다는 점을 함께 보면 민중 내부의 복잡성도 보입니다.'],
       used: ['맥락을 중시한 선택입니다.', '보부상 조직이 정치적으로 이용되었다고 보면 황국협회를 단순 악역이 아니라 시대 갈등 속 행위자로 분석할 수 있습니다.'],
@@ -1496,6 +1940,12 @@
       power: ['정치적 한계를 강조한 선택입니다.', '황제권 강화의 성격은 분명했습니다. 다만 토지, 산업, 도시, 군사 분야의 근대화 시도까지 부정할 필요는 없습니다.'],
       both: ['복합적 판단입니다.', '광무개혁은 근대화 정책이면서 동시에 황제권 강화 정책이었습니다. 바로 이 양면성이 핵심입니다.'],
       failed: ['결과를 중시한 선택입니다.', '외세 압박과 내부 한계로 개혁은 충분히 지속되지 못했습니다. 다만 실패했다는 결과만으로 시도의 의미가 사라지지는 않습니다.']
+    },
+    petitions: {
+      freedom: ['민권의 문제를 강조한 선택입니다.', '윤치호 쪽 상소는 의회 설치, 법령 시행, 자유권 보장 요구를 통해 민권 운동의 성격을 보여줍니다.'],
+      order: ['질서의 문제를 강조한 선택입니다.', '이문화 쪽 상소는 전제 황권과 전통 질서가 무너질 것을 두려워한 시각을 보여줍니다.'],
+      worldview: ['가장 복합적인 선택입니다.', '두 상소문은 단순한 선악 대립이 아니라 근대적 정치관과 전통적 질서관의 충돌을 보여줍니다.'],
+      power: ['현실 정치의 문제를 강조한 선택입니다.', '상소문은 명분의 언어로 쓰였지만, 그 배경에는 정권과 여론을 둘러싼 권력 투쟁도 있었습니다.']
     },
     people: {
       past: ['과거 행적도 역사적 사실입니다.', '초기 활동은 분석해야 합니다. 하지만 이후의 책임을 덮는 방식이 되어서는 안 됩니다.'],
@@ -1652,9 +2102,12 @@
       hwangguk: '황국협회 평가',
       gwangmu: '광무개혁 평가',
       people: '인물 평가',
+      'empire-origin': '아관파천과 대한제국',
+      jungchuwon: '중추원 평가',
+      petitions: '상소문 비교',
       final: '최종 시대 해석'
     };
-    const order = ['why', 'lead', 'independence', 'hwangguk', 'gwangmu', 'people', 'final'];
+    const order = ['why', 'empire-origin', 'lead', 'independence', 'jungchuwon', 'hwangguk', 'gwangmu', 'petitions', 'people', 'final'];
     const keys = order.filter(function(key) { return state.labels[key]; });
     list.innerHTML = keys.length
       ? keys.map(function(key) { return '<li><strong>' + names[key] + '</strong>: ' + state.labels[key] + '</li>'; }).join('')
