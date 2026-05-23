@@ -1,6 +1,8 @@
 // 윤치호 일기 섹션을 기존 발표 슬라이드 배열에 동적으로 삽입한다.
 // index.html의 기존 구조를 최대한 건드리지 않기 위한 후처리 스크립트.
 (function(){
+  const VERSION = '2026-05-23-order-fix-2';
+
   function esc(value){
     return String(value == null ? '' : value)
       .replace(/&/g,'&amp;')
@@ -35,6 +37,15 @@
     return slides.splice(idx,1)[0];
   }
 
+  function normalizeMovedPeopleSlide(slide){
+    if(!slide || !slide.html) return slide;
+    slide.html = slide.html
+      .replace('4단계 · 인물 재조명: 먼저 지도부를 본다','인물 재조명 · 한계의 얼굴들')
+      .replace('독립협회를 평가하기 전에, 먼저 그 운동을 이끈 사람들을 봅니다. 지도부의 시선과 한계를 알면 독립협회의 활동도 더 객관적으로 볼 수 있습니다.','앞에서 독립협회의 밝은 면과 제도적 한계를 살펴봤습니다. 이제 그 운동을 이끈 인물들의 복합적인 행적을 보고, 곧바로 윤치호 일기로 지도부 내부의 시선을 확인합니다.')
+      .replace('다음: 개혁 주체 선택 →','다음: 윤치호 일기 →');
+    return slide;
+  }
+
   function diaryCard(entry, index){
     const tags = (entry.topics || []).slice(0, 4).map(t => '<span class="tag">'+esc(t)+'</span>').join(' ');
     const date = [entry.date, entry.lunarDate, entry.weekday].filter(Boolean).join(' · ');
@@ -65,7 +76,7 @@
       html: `<section class="slide"><div class="wrap">
         <div class="kicker">사료 강화 · 윤치호 일기</div>
         <h2>윤치호 일기로 보는 독립협회의 속살</h2>
-        <p class="lead">앞에서 독립협회의 밝은 면과 한계를 살펴봤다면, 이제 지도부 내부의 시선을 1차 사료로 확인합니다. 윤치호 일기는 독립협회의 민권성, 엘리트주의, 황제권 인식이 한꺼번에 드러나는 자료입니다.</p>
+        <p class="lead">앞에서 독립협회의 밝은 면, 제도적 한계, 그리고 인물들의 복잡한 행적을 살펴봤다면, 이제 지도부 내부의 시선을 1차 사료로 확인합니다. 윤치호 일기는 독립협회의 민권성, 엘리트주의, 황제권 인식이 한꺼번에 드러나는 자료입니다.</p>
         <div class="cols3">${firstThree}</div>
         <div class="next"><button class="main" onclick="nextSlide()">다음: 실패와 사후 평가 →</button></div>
       </div></section>`
@@ -100,7 +111,7 @@
           <h2>오늘 사용한 윤치호 일기 5개</h2>
           <p class="lead">발표자는 이 표를 보고 필요한 사료 카드로 돌아갈 수 있습니다. 모든 항목은 국사편찬위원회 한국사데이터베이스의 한국사료총서 계열 자료를 기준으로 정리했습니다.</p>
           <div class="paper">${diaryTable(entries)}</div>
-          <div class="next"><button class="main" onclick="nextSlide()">다음 쟁점으로 →</button></div>
+          <div class="next"><button class="main" onclick="nextSlide()">다음: 황국협회 보기 →</button></div>
         </div>
         <aside class="dark">
           <h3>이 섹션의 역할</h3>
@@ -116,9 +127,9 @@
   }
 
   function reorderBaseSlides(){
-    // 기존 원본은 인물 재조명 슬라이드가 너무 앞에 있으므로,
-    // 독립협회의 밝은 면과 제도적 한계를 본 뒤 인물 평가가 나오도록 뒤로 옮긴다.
-    const peopleSlide = removeSlideByKeyword('한 사람은 하나의 단어로 설명될까');
+    // 목표 흐름:
+    // 독립협회의 밝은 면 → 한계/국민 인식/중추원 → 인물 재조명 → 윤치호 일기
+    const peopleSlide = normalizeMovedPeopleSlide(removeSlideByKeyword('한 사람은 하나의 단어로 설명될까'));
     if(!peopleSlide) return;
 
     let insertAfter = findSlideIndex('중추원은 의회가 될 수 있었을까');
@@ -159,15 +170,25 @@
       .diary-card .quote{font-family:"Noto Serif KR","Noto Sans KR",serif;font-weight:800;font-size:1.05rem;line-height:1.55;color:#3b291c;background:rgba(141,47,39,.08)}
       .diary-tags{display:flex;gap:.35rem;flex-wrap:wrap;margin-top:auto}
       .diary-tags .tag{margin-bottom:0}
+      .diary-debug{position:fixed;right:.8rem;bottom:.8rem;z-index:9999;padding:.25rem .5rem;border-radius:999px;background:rgba(16,14,11,.72);color:#f5ead2;font-size:.72rem;border:1px solid rgba(245,234,210,.18)}
     `;
     document.head.appendChild(style);
   }
 
+  function addDebugBadge(){
+    if(document.getElementById('diaryDebugBadge')) return;
+    const badge=document.createElement('div');
+    badge.id='diaryDebugBadge';
+    badge.className='diary-debug';
+    badge.textContent='윤치호 섹션 '+VERSION;
+    document.body.appendChild(badge);
+    setTimeout(()=>badge.remove(),3500);
+  }
+
   function boot(){
     addDiaryStyles();
-    if(!injectDiarySlides()){
-      setTimeout(injectDiarySlides, 50);
-    }
+    if(injectDiarySlides()) addDebugBadge();
+    else setTimeout(function(){ if(injectDiarySlides()) addDebugBadge(); }, 50);
   }
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
