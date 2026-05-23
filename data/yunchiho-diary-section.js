@@ -1,7 +1,7 @@
 // 윤치호 일기 섹션을 기존 발표 슬라이드 배열에 동적으로 삽입한다.
 // index.html의 기존 구조를 최대한 건드리지 않기 위한 후처리 스크립트.
 (function(){
-  const VERSION = '2026-05-23-order-fix-2';
+  const VERSION = '2026-05-23-button-label-fix';
 
   function esc(value){
     return String(value == null ? '' : value)
@@ -111,7 +111,7 @@
           <h2>오늘 사용한 윤치호 일기 5개</h2>
           <p class="lead">발표자는 이 표를 보고 필요한 사료 카드로 돌아갈 수 있습니다. 모든 항목은 국사편찬위원회 한국사데이터베이스의 한국사료총서 계열 자료를 기준으로 정리했습니다.</p>
           <div class="paper">${diaryTable(entries)}</div>
-          <div class="next"><button class="main" onclick="nextSlide()">다음: 황국협회 보기 →</button></div>
+          <div class="next"><button class="main" onclick="nextSlide()">다음: 인물 탐구 →</button></div>
         </div>
         <aside class="dark">
           <h3>이 섹션의 역할</h3>
