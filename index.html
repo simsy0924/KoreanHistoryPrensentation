@@ -25,14 +25,14 @@
     <p id="loadMessage">원본 발표 자료 로딩 중</p>
     <div class="actions" id="fallbackActions" style="display:none">
       <button onclick="location.reload()">다시 시도</button>
-      <a href="./index-yunchiho.html?v=20260523-stabilized">예비 연결판 열기</a>
+      <a href="./index-yunchiho.html?v=20260523-flow-fix">예비 연결판 열기</a>
     </div>
   </div>
 </div>
 <iframe id="presentationFrame" title="역사는 흑백이 아니다 발표 사이트"></iframe>
 <script>
 (function(){
-  const VERSION='20260523-stabilized';
+  const VERSION='20260523-flow-fix';
   const ORIGINAL_INDEX_URL='https://raw.githubusercontent.com/simsy0924/KoreanHistoryPrensentation/22a5820d6640df3ba65c580c65154be8989caa48/index.html?raw='+VERSION;
   const frame=document.getElementById('presentationFrame');
   const loader=document.getElementById('loader');
@@ -60,30 +60,8 @@
   }
 
   function stabilizeInjectedPresentation(doc){
-    const win=frame.contentWindow;
-    const fixes=function(){
-      try{
-        // 캐시된 구버전 주입 스크립트가 남아도 화면 문구는 최종 흐름에 맞춘다.
-        doc.querySelectorAll('button').forEach(btn=>{
-          if(btn.textContent.includes('다음: 황국협회 보기')) btn.textContent='다음: 인물 탐구 →';
-        });
-        doc.querySelectorAll('.route-bridge strong').forEach(el=>{
-          if(el.textContent.includes('황국협회')) el.textContent=el.textContent.replace('황국협회','인물 탐구');
-        });
-        if(win && Array.isArray(win.slides)){
-          win.slides.forEach(slide=>{
-            if(slide && typeof slide.html==='string'){
-              slide.html=slide.html.replaceAll('다음: 황국협회 보기 →','다음: 인물 탐구 →');
-            }
-          });
-        }
-      }catch(e){ console.warn('stabilize failed', e); }
-    };
-    fixes();
-    setTimeout(fixes,100);
-    setTimeout(fixes,350);
-    setTimeout(fixes,800);
-    setTimeout(fixes,1500);
+    // 지금은 강제 버튼명 변경을 하지 않는다.
+    // 버튼 문구는 data/yunchiho-diary-section.js의 실제 삽입 순서를 기준으로 한다.
   }
 
   async function boot(){
