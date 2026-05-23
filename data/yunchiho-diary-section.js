@@ -1,7 +1,7 @@
 // 윤치호 일기 섹션을 기존 발표 슬라이드 배열에 동적으로 삽입한다.
 // index.html의 기존 구조를 최대한 건드리지 않기 위한 후처리 스크립트.
 (function(){
-  const VERSION = '2026-05-23-button-label-flow-fix';
+  const VERSION = '2026-05-23-auto-next-labels';
 
   function esc(value){
     return String(value == null ? '' : value)
@@ -27,6 +27,33 @@
     return strip((h2 && h2[1]) || (h1 && h1[1]) || html.slice(0,180));
   }
 
+  function shortNextTitle(title){
+    const t = strip(title);
+    if(!t) return '다음으로';
+    if(t.includes('우리는 역사를 왜')) return '역사를 배우는 이유';
+    if(t.includes('혼란의 시대')) return '시대 상황 보기';
+    if(t.includes('아관파천')) return '대한제국의 출발';
+    if(t.includes('근대화는 누가')) return '개혁 주체 선택';
+    if(t.includes('신문, 회보')) return '독립협회 사료';
+    if(t.includes('민권과 자주독립')) return '독립협회의 밝은 면';
+    if(t.includes('민주주의 단체')) return '독립협회의 한계';
+    if(t.includes('국민')) return '국민은 주체였나';
+    if(t.includes('중추원')) return '중추원 보기';
+    if(t.includes('한 사람은')) return '인물 탐구';
+    if(t.includes('윤치호 일기')) return '윤치호 일기';
+    if(t.includes('만민공동회는 왜 실패')) return '실패와 사후 평가';
+    if(t.includes('오늘 사용한 윤치호')) return '사료 인덱스';
+    if(t.includes('황국협회')) return '황국협회 보기';
+    if(t.includes('러시아만')) return '외세와 이권';
+    if(t.includes('광무개혁은')) return '광무개혁 재조명';
+    if(t.includes('구본신참')) return '광무개혁 세부 내용';
+    if(t.includes('근거 자료')) return '근거 자료 정리';
+    if(t.includes('우리 반의 역사')) return '학급 선택 정리';
+    if(t.includes('그래서')) return '마지막 판단';
+    if(t.includes('판결문')) return '결론';
+    return t.length > 16 ? t.slice(0,16) + '…' : t;
+  }
+
   function findSlideIndex(keyword){
     return slides.findIndex(s => slideTitleText(s).includes(keyword));
   }
@@ -41,8 +68,7 @@
     if(!slide || !slide.html) return slide;
     slide.html = slide.html
       .replace('4단계 · 인물 재조명: 먼저 지도부를 본다','인물 재조명 · 한계의 얼굴들')
-      .replace('독립협회를 평가하기 전에, 먼저 그 운동을 이끈 사람들을 봅니다. 지도부의 시선과 한계를 알면 독립협회의 활동도 더 객관적으로 볼 수 있습니다.','앞에서 독립협회의 밝은 면과 제도적 한계를 살펴봤습니다. 이제 그 운동을 이끈 인물들의 복합적인 행적을 보고, 곧바로 윤치호 일기로 지도부 내부의 시선을 확인합니다.')
-      .replace('다음: 개혁 주체 선택 →','다음: 윤치호 일기 →');
+      .replace('독립협회를 평가하기 전에, 먼저 그 운동을 이끈 사람들을 봅니다. 지도부의 시선과 한계를 알면 독립협회의 활동도 더 객관적으로 볼 수 있습니다.','앞에서 독립협회의 밝은 면과 제도적 한계를 살펴봤습니다. 이제 그 운동을 이끈 인물들의 복합적인 행적을 보고, 곧바로 윤치호 일기로 지도부 내부의 시선을 확인합니다.');
     return slide;
   }
 
@@ -78,7 +104,7 @@
         <h2>윤치호 일기로 보는 독립협회의 속살</h2>
         <p class="lead">앞에서 독립협회의 밝은 면, 제도적 한계, 그리고 인물들의 복잡한 행적을 살펴봤다면, 이제 지도부 내부의 시선을 1차 사료로 확인합니다. 윤치호 일기는 독립협회의 민권성, 엘리트주의, 황제권 인식이 한꺼번에 드러나는 자료입니다.</p>
         <div class="cols3">${firstThree}</div>
-        <div class="next"><button class="main" onclick="nextSlide()">다음: 실패와 사후 평가 →</button></div>
+        <div class="next"><button class="main" onclick="nextSlide()">다음 →</button></div>
       </div></section>`
     };
   }
@@ -97,7 +123,7 @@
           <p>독립협회는 민중과 함께한 운동이었을까, 아니면 민중을 계몽 대상으로 본 엘리트의 정치 기획이었을까?</p>
           <div class="quote">이 질문은 앞에서 본 ‘밝은 면’과 ‘한계’를 다시 연결하는 역할을 합니다.</div>
         </div>
-        <div class="next"><button class="main" onclick="nextSlide()">다음: 사료 인덱스 →</button></div>
+        <div class="next"><button class="main" onclick="nextSlide()">다음 →</button></div>
       </div></section>`
     };
   }
@@ -111,7 +137,7 @@
           <h2>오늘 사용한 윤치호 일기 5개</h2>
           <p class="lead">발표자는 이 표를 보고 필요한 사료 카드로 돌아갈 수 있습니다. 모든 항목은 국사편찬위원회 한국사데이터베이스의 한국사료총서 계열 자료를 기준으로 정리했습니다.</p>
           <div class="paper">${diaryTable(entries)}</div>
-          <div class="next"><button class="main" onclick="nextSlide()">다음: 황국협회 보기 →</button></div>
+          <div class="next"><button class="main" onclick="nextSlide()">다음 →</button></div>
         </div>
         <aside class="dark">
           <h3>이 섹션의 역할</h3>
@@ -141,6 +167,20 @@
     slides.splice(insertAfter + 1, 0, peopleSlide);
   }
 
+  function syncNextButtonLabels(){
+    if(typeof slides === 'undefined' || !Array.isArray(slides)) return;
+    slides.forEach((slide, idx) => {
+      if(!slide || typeof slide.html !== 'string') return;
+      const nextSlide = slides[idx + 1];
+      if(!nextSlide) return;
+      const label = '다음: ' + shortNextTitle(slideTitleText(nextSlide)) + ' →';
+      slide.html = slide.html.replace(/다음: [^<→]*? →/g, label);
+      slide.html = slide.html.replace(/다음 →/g, label);
+      slide.html = slide.html.replace(/발표 시작하기 →/g, label);
+      slide.html = slide.html.replace(/결론 보기 →/g, label);
+    });
+  }
+
   function injectDiarySlides(){
     if(!Array.isArray(window.YUNCHIHO_DIARY_ENTRIES) || !window.YUNCHIHO_DIARY_ENTRIES.length) return false;
     if(typeof slides === 'undefined' || !Array.isArray(slides)) return false;
@@ -155,6 +195,7 @@
     if(insertAfter < 0) insertAfter = Math.min(9, Math.max(1, slides.length - 1));
 
     slides.splice(insertAfter + 1, 0, buildIntroSlide(entries), buildFollowSlide(entries), buildIndexSlide(entries));
+    syncNextButtonLabels();
 
     if(typeof render === 'function') render();
     return true;
