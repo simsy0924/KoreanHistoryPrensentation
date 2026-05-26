@@ -1,14 +1,14 @@
 // 윤치호 일기 섹션을 기존 발표 슬라이드 배열에 동적으로 삽입한다.
 // index.html의 기존 구조를 최대한 건드리지 않기 위한 후처리 스크립트.
 (function(){
-  const VERSION = '2026-05-23-auto-next-labels';
+  const VERSION = '2026-05-26-six-diary-count';
 
   function esc(value){
     return String(value == null ? '' : value)
       .replace(/&/g,'&amp;')
       .replace(/</g,'&lt;')
       .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;')
+      .replace(/\"/g,'&quot;')
       .replace(/'/g,'&#039;');
   }
 
@@ -110,14 +110,16 @@
   }
 
   function buildFollowSlide(entries){
-    const rest = entries.slice(3).map((e,i)=>diaryCard(e,i+3)).join('');
+    const restEntries = entries.slice(3);
+    const restClass = restEntries.length >= 3 ? 'cols3' : 'cols2';
+    const rest = restEntries.map((e,i)=>diaryCard(e,i+3)).join('');
     return {
       yunchihoDiary: true,
       html: `<section class="slide"><div class="wrap">
         <div class="kicker">사료 강화 · 실패의 해석</div>
         <h2>만민공동회는 왜 실패했나?</h2>
-        <p class="lead">윤치호는 만민공동회의 실패를 단순히 정부 탄압 하나로만 보지 않았습니다. 급진파의 전략, 대중 여론의 이탈, 황제권, 일본과 러시아의 이해관계까지 함께 보았습니다.</p>
-        <div class="cols2">${rest}</div>
+        <p class="lead">윤치호는 만민공동회의 실패를 단순히 정부 탄압 하나로만 보지 않았습니다. 외세와 내부 정치 세력의 결합, 급진파의 전략, 대중 여론의 이탈, 황제권, 일본과 러시아의 이해관계까지 함께 보았습니다.</p>
+        <div class="${restClass}">${rest}</div>
         <div class="paper" style="margin-top:1rem">
           <h3>발표에서 던질 최종 질문</h3>
           <p>독립협회는 민중과 함께한 운동이었을까, 아니면 민중을 계몽 대상으로 본 엘리트의 정치 기획이었을까?</p>
@@ -134,8 +136,8 @@
       html: `<section class="slide"><div class="wrap grid">
         <div>
           <div class="kicker">사료 인덱스</div>
-          <h2>오늘 사용한 윤치호 일기 5개</h2>
-          <p class="lead">발표자는 이 표를 보고 필요한 사료 카드로 돌아갈 수 있습니다. 모든 항목은 국사편찬위원회 한국사데이터베이스의 한국사료총서 계열 자료를 기준으로 정리했습니다.</p>
+          <h2>오늘 사용한 윤치호 일기 ${entries.length}개</h2>
+          <p class="lead">이 표는 발표에 사용한 윤치호 일기 사료를 날짜순으로 정리한 것입니다. 모든 항목은 국사편찬위원회 한국사데이터베이스의 한국사료총서 계열 자료를 기준으로 정리했습니다.</p>
           <div class="paper">${diaryTable(entries)}</div>
           <div class="next"><button class="main" onclick="nextSlide()">다음 →</button></div>
         </div>
@@ -144,6 +146,7 @@
           <ul class="hist">
             <li>헌의 6조의 민권성과 황제권 의존성 비교</li>
             <li>독립협회 지도부의 절차주의와 엘리트주의 확인</li>
+            <li>외세와 내부 정치 세력이 독립협회를 압박한 구조 확인</li>
             <li>만민공동회 실패를 탄압만이 아니라 전략·여론·외세 문제로 해석</li>
           </ul>
           <div class="route"><strong>핵심 결론</strong>윤치호 일기는 독립협회를 더 나쁘게 만들기 위한 자료가 아니라, 더 입체적으로 보기 위한 자료입니다.</div>
