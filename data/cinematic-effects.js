@@ -1,20 +1,20 @@
 // 시네마틱 영화적 애니메이션: 먹 웨이브 전환, 인트로 글리치, 결론 도장, 황금 입자
 (function(){
-  const VERSION = '2026-05-26-cinematic-v1';
+  const VERSION = '2026-05-26-cinematic-v2';
   if (window.__CINEMATIC_EFFECTS__ === VERSION) return;
   window.__CINEMATIC_EFFECTS__ = VERSION;
 
   // ============================================
   // 디바이스 감지 & 환경 설정
   // ============================================
+  const isMobile = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent);
   const isLowEnd = (() => {
-    const ua = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent);
     const mem = navigator.deviceMemory && navigator.deviceMemory < 4;
     const cores = navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4;
-    return ua || mem || cores;
+    return isMobile || mem || cores;
   })();
-  const prefersReducedMotion = window.matchMedia &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const prefersReducedMotion = !!(window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   // ============================================
   // 1. CSS 스타일 주입 (한 번만)
@@ -227,7 +227,7 @@
           </filter>
         </defs>
         <path id="inkPath" fill="#0a0907"
-              ${isLowEnd ? '' : 'filter="url(#inkTurb)"'}
+              ${isMobile ? '' : 'filter="url(#inkTurb)"'}
               d="M-20,0 L-20,100 L-20,100 L-20,0 Z"/>
       </svg>
       <div class="ink-splatter"></div>
@@ -237,77 +237,184 @@
   }
 
   // ============================================
-  // 3. 먹 웨이브 전환 재생
+  // 3. 안전한 네비게이션 호출 (fallback 포함)
+  // ============================================
+  function safeNavigate(oldFn, target, label, safeTarget){
+    let ok = false;
+
+    // 1차: 훅 체인 호출
+    try {
+      oldFn.call(window, target, label);
+      ok = true;
+    } catch(e) {
+      console.warn('[cinematic] navigation hook failed, trying fallback:', e);
+    }
+
+    if(ok) return;
+
+    // 2차: goTo 직접 호출
+    try {
+      if(typeof window.goTo === 'function'){
+        window.goTo(safeTarget);
+        ok = true;
+      }
+    } catch(e) {
+      console.warn('[cinematic] goTo fallback failed:', e);
+    }
+
+    if(ok) return;
+
+    // 3차: current 직접 설정 + render
+    try {
+      window.current = safeTarget;
+      if(typeof window.render === 'function') window.render();
+    } catch(e) {
+      console.warn('[cinematic] direct render fallback failed:', e);
+    }
+  }
+
+  function safeNextSlide(oldFn){
+    let ok = false;
+    try {
+      oldFn.call(window);
+      ok = true;
+    } catch(e) {
+      console.warn('[cinematic] nextSlide hook failed, trying fallback:', e);
+    }
+
+    if(ok) return;
+
+    try {
+      const target = Math.min(
+        (typeof window.current === 'number' ? window.current : 0) + 1,
+        (Array.isArray(window.slides) ? window.slides.length : 1) - 1
+      );
+      if(typeof window.goTo === 'function') window.goTo(target);
+      else {
+        window.current = target;
+        if(typeof window.render === 'function') window.render();
+      }
+    } catch(e) {
+      console.warn('[cinematic] nextSlide fallback failed:', e);
+    }
+  }
+
+  // ============================================
+  // 4. 먹 웨이브 전환 재생
   // ============================================
   function playInkSweep(onMidpoint, duration){
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       if(prefersReducedMotion){
-        // 모션 감소 환경: 즉시 전환
-        if(onMidpoint) onMidpoint();
+        try{ if(onMidpoint) onMidpoint(); }catch(e){}
         resolve();
         return;
       }
 
       const wrap = createInkOverlay();
-      const path = wrap.querySelector('#inkPath');
-      const DURATION = duration || (isLowEnd ? 600 : 900);
-      const MID_RATIO = 0.5;
+      const DURATION = duration || (isMobile ? 500 : 900);
+      const HALF = Math.round(DURATION / 2);
+
       wrap.classList.add('active');
 
-      const start = performance.now();
-      let midCalled = false;
+      if(isMobile){
+        // CSS clip-path 스윕 — 모바일에서 더 안정적
+        wrap.style.clipPath = 'inset(0 100% 0 0)';
+        wrap.style.transition = 'none';
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            wrap.style.transition = `clip-path ${HALF}ms cubic-bezier(0.4,0,0.2,1)`;
+            wrap.style.clipPath = 'inset(0 0% 0 0)';
+          });
+        });
 
-      function frame(now){
-        const t = Math.min(1, (now - start) / DURATION);
-        const e = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2;
-
-        let leftEdge, rightEdge;
-        if(t < 0.5){
-          const p = e * 2;
-          leftEdge  = -20 + p * 140;
-          rightEdge = leftEdge - 45;
-        } else {
-          const p = (e - 0.5) * 2;
-          leftEdge  = 120 + p * 30;
-          rightEdge = -20 + p * 140;
-        }
-        path.setAttribute('d',
-          `M${rightEdge - 30},0 L${leftEdge},0 L${leftEdge + 8},100 L${rightEdge - 25},100 Z`
-        );
-
-        if(t >= MID_RATIO && !midCalled){
-          midCalled = true;
-          try{ if(onMidpoint) onMidpoint(); }catch(e){ console.debug(e); }
+        var midFired = false;
+        setTimeout(() => {
+          if(!midFired){
+            midFired = true;
+            try{ if(onMidpoint) onMidpoint(); }catch(e){ console.warn('[cinematic] onMidpoint error:', e); }
+          }
           wrap.classList.add('splatting');
+          wrap.style.transition = `clip-path ${HALF}ms cubic-bezier(0.2,0,0.8,1)`;
+          wrap.style.clipPath = 'inset(0 0% 0 100%)';
+          setTimeout(() => {
+            wrap.classList.remove('active','splatting');
+            wrap.style.clipPath = '';
+            wrap.style.transition = '';
+            resolve();
+          }, HALF + 40);
+        }, HALF);
+
+      } else {
+        // SVG path RAF 스윕 — 데스크탑
+        const path = wrap.querySelector('#inkPath');
+        if(!path){
+          try{ if(onMidpoint) onMidpoint(); }catch(e){}
+          wrap.classList.remove('active');
+          resolve();
+          return;
         }
 
-        if(t < 1) requestAnimationFrame(frame);
-        else {
-          wrap.classList.remove('active','splatting');
-          resolve();
+        const start = performance.now();
+        let midCalled = false;
+
+        function frame(now){
+          try{
+            const t = Math.min(1, (now - start) / DURATION);
+            const e = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2;
+
+            let leftEdge, rightEdge;
+            if(t < 0.5){
+              const p = e * 2;
+              leftEdge  = -20 + p * 140;
+              rightEdge = leftEdge - 45;
+            } else {
+              const p = (e - 0.5) * 2;
+              leftEdge  = 120 + p * 30;
+              rightEdge = -20 + p * 140;
+            }
+            path.setAttribute('d',
+              `M${rightEdge - 30},0 L${leftEdge},0 L${leftEdge + 8},100 L${rightEdge - 25},100 Z`
+            );
+
+            if(t >= 0.5 && !midCalled){
+              midCalled = true;
+              try{ if(onMidpoint) onMidpoint(); }catch(e){ console.warn('[cinematic] onMidpoint error:', e); }
+              wrap.classList.add('splatting');
+            }
+
+            if(t < 1) requestAnimationFrame(frame);
+            else {
+              wrap.classList.remove('active','splatting');
+              resolve();
+            }
+          }catch(err){
+            // 오류 시에도 네비게이션은 보장
+            if(!midCalled){
+              midCalled = true;
+              try{ if(onMidpoint) onMidpoint(); }catch(e){}
+            }
+            wrap.classList.remove('active','splatting');
+            resolve();
+          }
         }
+        requestAnimationFrame(frame);
       }
-      requestAnimationFrame(frame);
     });
   }
 
   // ============================================
-  // 4. 인트로 슬라이드 강화 (글자 단위 등장)
+  // 5. 인트로 슬라이드 강화 (글자 단위 등장)
   // ============================================
   function enhanceIntroSlide(){
     if(prefersReducedMotion) return;
-    // 활성 슬라이드의 h1을 찾음
     const activeSlide = document.querySelector('.slide.active') || document.querySelector('.slide');
     if(!activeSlide) return;
     const h1 = activeSlide.querySelector('h1');
     if(!h1 || h1.dataset.cinematicSplit) return;
 
-    const text = h1.textContent || '';
-    // <br>이 있을 수 있으니 원본 HTML도 보존
     const originalHTML = h1.innerHTML;
     h1.innerHTML = '';
 
-    // HTML 파싱: <br> 보존, 글자 분리
     const tmp = document.createElement('div');
     tmp.innerHTML = originalHTML;
 
@@ -342,7 +449,7 @@
   }
 
   // ============================================
-  // 5. 결론 슬라이드 클라이맥스
+  // 6. 결론 슬라이드 클라이맥스
   // ============================================
   function enhanceConclusionSlide(){
     const activeSlide = document.querySelector('.slide.active');
@@ -351,11 +458,9 @@
     activeSlide.classList.add('verdict-stage');
     activeSlide.dataset.cinematicConclusion = '1';
 
-    // .qmain 명언 줄 단위 분리
     const qmain = activeSlide.querySelector('.qmain');
     if(qmain && !qmain.dataset.cinematicQuote){
       const html = qmain.innerHTML;
-      // <br>로 분리하되 자식 요소(span/strong)는 유지
       const parts = html.split(/<br\s*\/?>/i);
       qmain.innerHTML = parts
         .map((p, i) => {
@@ -366,7 +471,6 @@
       qmain.dataset.cinematicQuote = '1';
     }
 
-    // 잉크 도장 (라인 stagger 완료 후)
     const lineCount = qmain ? qmain.querySelectorAll('.qline').length : 0;
     const stampDelay = (1.6 + lineCount * 0.55 + 0.8) * 1000;
 
@@ -388,7 +492,6 @@
     void stamp.offsetWidth;
     stamp.classList.add('drop');
 
-    // 도장 떨어지는 순간 카메라 셰이크 + 사운드
     setTimeout(() => {
       if(!isLowEnd){
         document.body.classList.remove('shake-once');
@@ -401,7 +504,7 @@
   }
 
   // ============================================
-  // 6. 황금 입자 캔버스 (마우스 추적)
+  // 7. 황금 입자 캔버스 (마우스 추적)
   // ============================================
   function initGoldDust(){
     if(isLowEnd || prefersReducedMotion) return;
@@ -468,7 +571,7 @@
   }
 
   // ============================================
-  // 7. 챕터 전환 글리치
+  // 8. 챕터 전환 글리치
   // ============================================
   function playGlitchPulse(target){
     if(!target || isLowEnd || prefersReducedMotion) return;
@@ -488,12 +591,11 @@
   }
 
   // ============================================
-  // 8. 네비게이션 훅킹 (linkedGo, nextSlide, goTo)
+  // 9. 네비게이션 훅킹 (linkedGo, nextSlide)
   // ============================================
   function isReturnOrTimewarpTarget(target){
     if(typeof slides === 'undefined' || !Array.isArray(slides)) return false;
     if(typeof current !== 'number') return false;
-    // 마지막 직전 → 마지막 (현재로 돌아오기 효과)
     if(target === slides.length - 1 && current === slides.length - 2) return true;
     return false;
   }
@@ -508,39 +610,34 @@
         if(typeof slides === 'undefined' || !Array.isArray(slides)){
           return oldLinkedGo.call(this, target, label);
         }
-        const safeTarget = Math.max(0, Math.min(target, slides.length - 1));
+        const safeTarget = Math.max(0, Math.min(
+          typeof target === 'number' ? target : parseInt(target, 10) || 0,
+          slides.length - 1
+        ));
 
-        // 같은 슬라이드 클릭
         if(safeTarget === current){
           return oldLinkedGo.call(this, target, label);
         }
-        // 타임워프/리턴 효과 위임
         if(isReturnOrTimewarpTarget(safeTarget)){
           return oldLinkedGo.call(this, target, label);
         }
-        // 락 체크
-        if(window.__INK_SWEEPING__){
-          return;
-        }
+        if(window.__INK_SWEEPING__) return;
         window.__INK_SWEEPING__ = true;
 
-        // 챕터 경계 체크: 인덱스 차이 또는 단계 변화
-        const curSlide = document.querySelector('.slide.active');
-        const curStage = getStageNumber(curSlide);
         const indexDelta = Math.abs(safeTarget - current);
         const isChapterChange = indexDelta >= 2;
-        const duration = isChapterChange ? 1200 : 900;
+        const duration = isChapterChange ? (isMobile ? 700 : 1200) : undefined;
 
         playInkSweep(() => {
-          oldLinkedGo.call(window, target, label);
-          if(isChapterChange){
+          safeNavigate(oldLinkedGo, target, label, safeTarget);
+          if(isChapterChange && !isMobile){
             setTimeout(() => {
               playGlitchPulse(document.querySelector('.slide.active'));
             }, 50);
           }
-        }, duration).then(() => {
-          window.__INK_SWEEPING__ = false;
-        });
+        }, duration)
+        .then(() => { window.__INK_SWEEPING__ = false; })
+        .catch(() => { window.__INK_SWEEPING__ = false; });
       };
     }
 
@@ -564,16 +661,16 @@
         window.__INK_SWEEPING__ = true;
 
         playInkSweep(() => {
-          oldNextSlide.call(window);
-        }).then(() => {
-          window.__INK_SWEEPING__ = false;
-        });
+          safeNextSlide(oldNextSlide);
+        })
+        .then(() => { window.__INK_SWEEPING__ = false; })
+        .catch(() => { window.__INK_SWEEPING__ = false; });
       };
     }
   }
 
   // ============================================
-  // 9. render 훅 (인트로/결론 강화)
+  // 10. render 훅 (인트로/결론 강화)
   // ============================================
   function hookRender(){
     if(window.__CINEMATIC_RENDER_HOOKED__) return;
@@ -597,7 +694,6 @@
       return result;
     };
 
-    // 초기 렌더 후에도 한 번 호출 (페이지 첫 로드)
     setTimeout(() => {
       try{
         if(typeof current === 'number' && current === 0){
@@ -608,9 +704,10 @@
   }
 
   // ============================================
-  // 10. Boot
+  // 11. Boot
   // ============================================
-  function boot(attempts){
+  function boot(attempts, delay){
+    const d = delay || (isMobile ? 200 : 140);
     addStyles();
     createInkOverlay();
     if(typeof slides !== 'undefined' && Array.isArray(slides) &&
@@ -618,13 +715,12 @@
       hookNavigation();
       hookRender();
       initGoldDust();
-      // 첫 인트로 강화
       setTimeout(enhanceIntroSlide, 120);
       console.debug('Cinematic effects loaded:', VERSION);
       return;
     }
-    if(attempts > 0) setTimeout(() => boot(attempts - 1), 140);
+    if(attempts > 0) setTimeout(() => boot(attempts - 1, d), d);
   }
 
-  boot(15);
+  boot(isMobile ? 30 : 15);
 })();
