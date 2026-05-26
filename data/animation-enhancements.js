@@ -76,8 +76,16 @@
     window.render = function() {
       originalRender.call(this);
 
-      // 슬라이드 진입 후 카드 애니메이션 시작
+      // 슬라이드 진입 후 이전 선택지 상태 초기화
       setTimeout(() => {
+        const oldChoices = document.querySelectorAll('.choice, [data-choice]');
+        oldChoices.forEach(btn => {
+          btn.style.animation = '';
+          btn.style.pointerEvents = 'auto';
+          btn.classList.remove('selected');
+        });
+
+        // 카드 애니메이션 시작
         const cards = document.querySelectorAll(
           '.diary-card, .source-doc, .source-summary article'
         );
