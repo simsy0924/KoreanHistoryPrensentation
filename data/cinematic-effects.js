@@ -1,6 +1,6 @@
 // 시네마틱 영화적 애니메이션: 먹 웨이브 전환, 인트로 글리치, 결론 도장, 황금 입자
 (function(){
-  const VERSION = '2026-05-26-cinematic-v2';
+  const VERSION = '2026-05-26-cinematic-v3';
   if (window.__CINEMATIC_EFFECTS__ === VERSION) return;
   window.__CINEMATIC_EFFECTS__ = VERSION;
 
@@ -600,6 +600,42 @@
     return false;
   }
 
+  // goTo를 직접 호출하는 공통 미드포인트 핸들러
+  // 래퍼 체인(nextSlide→linkedGo→시네마틱 훅)을 완전히 건너뛰어
+  // __INK_SWEEPING__ 재진입 데드락을 방지한다
+  function doNavigate(navTarget, isChapterChange){
+    // 락을 임시 해제해 중첩 호출이 차단되지 않도록 함
+    window.__INK_SWEEPING__ = false;
+    try {
+      if(typeof window.goTo === 'function'){
+        window.goTo(navTarget);
+      } else {
+        // goTo가 없을 경우 직접 조작
+        try { current = navTarget; } catch(e) {} // eslint-disable-line no-undef
+        if(typeof window.render === 'function') window.render();
+      }
+    } catch(e){
+      console.warn('[cinematic] doNavigate failed:', e);
+    }
+    // routeBridge 및 moving 플래그 정리
+    try { const b = document.getElementById('routeBridge'); if(b) b.classList.remove('active'); } catch(e) {}
+    try { moving = false; } catch(e) {} // eslint-disable-line no-undef
+    // 나머지 애니메이션 동안 새 스윕이 시작되지 않도록 재잠금
+    window.__INK_SWEEPING__ = true;
+    // 특수 슬라이드 시네마틱 효과 트리거
+    if(isChapterChange && !isMobile){
+      setTimeout(() => playGlitchPulse(document.querySelector('.slide.active')), 50);
+    }
+    setTimeout(() => {
+      try {
+        if(typeof current === 'number'){
+          if(current === 0) enhanceIntroSlide();
+          else if(Array.isArray(slides) && current === slides.length - 1) enhanceConclusionSlide();
+        }
+      } catch(e) {}
+    }, 60);
+  }
+
   function hookNavigation(){
     if(window.__CINEMATIC_NAV_HOOKED__) return;
     window.__CINEMATIC_NAV_HOOKED__ = true;
@@ -629,12 +665,7 @@
         const duration = isChapterChange ? (isMobile ? 700 : 1200) : undefined;
 
         playInkSweep(() => {
-          safeNavigate(oldLinkedGo, target, label, safeTarget);
-          if(isChapterChange && !isMobile){
-            setTimeout(() => {
-              playGlitchPulse(document.querySelector('.slide.active'));
-            }, 50);
-          }
+          doNavigate(safeTarget, isChapterChange);
         }, duration)
         .then(() => { window.__INK_SWEEPING__ = false; })
         .catch(() => { window.__INK_SWEEPING__ = false; });
@@ -661,7 +692,7 @@
         window.__INK_SWEEPING__ = true;
 
         playInkSweep(() => {
-          safeNextSlide(oldNextSlide);
+          doNavigate(target, false);
         })
         .then(() => { window.__INK_SWEEPING__ = false; })
         .catch(() => { window.__INK_SWEEPING__ = false; });
