@@ -1,7 +1,7 @@
 // 학생 필기 수정안을 발표 흐름에 반영하는 후처리 스크립트.
-// 핵심 수정: 첫 화면 문구, '손들기 질문' 표현, 1번 질문 선택지, 2단계 배경 타임라인.
+// 핵심 수정: 첫 화면 문구, '손들기 질문' 표현, 1번 질문 선택지, 2단계 배경 타임라인, 6단계 사료 UI.
 (function(){
-  const VERSION = '2026-05-26-note-revision';
+  const VERSION = '2026-05-26-source-ui';
   if (window.__PRESENTATION_NOTE_REVISION__ === VERSION) return;
   window.__PRESENTATION_NOTE_REVISION__ = VERSION;
 
@@ -130,6 +130,51 @@
     slides[idx].html = buildBackgroundSlide();
   }
 
+  function addSourceEvidenceStyles(){
+    if(document.getElementById('sourceEvidenceRevisionStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'sourceEvidenceRevisionStyles';
+    style.textContent = `
+      .source-stage{display:grid;grid-template-columns:.86fr 1.14fr;gap:1rem;align-items:stretch}
+      .source-hero{display:flex;flex-direction:column;justify-content:space-between;min-height:100%}
+      .source-hero .lead{margin-bottom:1rem}
+      .source-brief{display:grid;gap:.65rem;margin-top:1rem}
+      .source-brief div{padding:.85rem;border-radius:1rem;background:rgba(245,234,210,.075);border:1px solid rgba(245,234,210,.13)}
+      .source-brief strong{display:block;color:var(--paper);margin-bottom:.15rem}
+      .source-brief span{display:block;color:rgba(255,248,232,.72);font-size:.94rem;line-height:1.55}
+      .source-board{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-bottom:.9rem}
+      .source-card{position:relative;min-height:13rem;border-radius:1.35rem;padding:1rem;background:linear-gradient(160deg,var(--paper) 0%,#dfcb9d 100%);color:var(--ink);box-shadow:0 20px 50px rgba(0,0,0,.22);overflow:hidden}
+      .source-card:before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(40,31,23,.045) 1px,transparent 1px);background-size:100% 1.7rem;pointer-events:none}
+      .source-card > *{position:relative}
+      .source-card .source-num{display:inline-grid;place-items:center;width:2rem;height:2rem;border-radius:50%;background:var(--red);color:var(--paper);font-weight:950;margin-bottom:.55rem}
+      .source-card h3{margin-bottom:.45rem;color:var(--ink)}
+      .source-card p{margin:.35rem 0;color:#5f4c39;line-height:1.55;font-size:.95rem}
+      .source-card .mini-tag{display:inline-flex;margin-top:.55rem;padding:.22rem .52rem;border-radius:999px;background:rgba(201,154,58,.22);color:#704b0c;font-weight:900;font-size:.78rem}
+      .evidence-path{display:grid;grid-template-columns:repeat(4,1fr);gap:.55rem;margin:.8rem 0}
+      .evidence-node{position:relative;padding:.78rem .7rem;border-radius:1rem;background:rgba(245,234,210,.08);border:1px solid rgba(245,234,210,.13);text-align:center;color:rgba(255,248,232,.84);font-weight:900;line-height:1.3}
+      .evidence-node:not(:last-child):after{content:"→";position:absolute;right:-.48rem;top:50%;transform:translateY(-50%);color:var(--gold);font-size:1.1rem}
+      .six-preview{margin-top:.9rem;padding:1rem;border-radius:1.2rem;background:rgba(201,154,58,.13);border:1px solid rgba(201,154,58,.25)}
+      .six-preview h3{margin-bottom:.55rem;color:var(--paper)}
+      .six-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.45rem}
+      .six-grid span{padding:.52rem .6rem;border-radius:.75rem;background:rgba(16,14,11,.32);border:1px solid rgba(245,234,210,.1);font-size:.9rem;color:rgba(255,248,232,.78)}
+      .source-footer{display:flex;gap:.7rem;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:.9rem}
+      .source-footer .route{margin:0;flex:1 1 22rem}
+      @media(max-width:980px){.source-stage,.source-board,.evidence-path,.six-grid{grid-template-columns:1fr}.evidence-node:not(:last-child):after{content:"↓";right:50%;top:auto;bottom:-.65rem;transform:translateX(50%)}}
+    `;
+    document.head.appendChild(style);
+  }
+
+  function buildSourceEvidenceSlide(){
+    return `<section class="slide"><div class="wrap source-stage"><div class="source-hero"><div><div class="kicker">6단계 · 독립협회를 사료로 보기</div><h2>신문, 회보, 상소문:<br>여론이 정치가 되다</h2><p class="lead">이 화면은 사건을 길게 나열하기보다, 독립협회의 주장이 어떤 매체를 거쳐 정치 요구로 커졌는지 한눈에 보이도록 정리했습니다.</p></div><div class="source-brief"><div><strong>읽는 순서</strong><span>신문으로 여론 형성 → 토론회로 쟁점 확대 → 상소문과 헌의 6조로 제도화</span></div><div><strong>발표 포인트</strong><span>독립협회는 단순 계몽 단체가 아니라, 말과 글을 정치적 압력으로 바꾸려 했던 단체입니다.</span></div></div></div><div><div class="source-board"><article class="source-card"><span class="source-num">1</span><h3>독립신문</h3><p>한글 중심 신문을 통해 자주독립과 개화 사상을 넓게 알렸습니다.</p><span class="mini-tag">여론 형성</span></article><article class="source-card"><span class="source-num">2</span><h3>대조선독립협회회보</h3><p>독립협회의 생각을 더 조직적으로 보여주는 공식 자료입니다.</p><span class="mini-tag">단체의 목소리</span></article><article class="source-card"><span class="source-num">3</span><h3>구국 운동 상소문</h3><p>의회 설치, 자유권, 신체·재산권 보장 요구가 정치적 문장으로 정리됩니다.</p><span class="mini-tag">정치 요구</span></article></div><div class="dark"><h3>사료가 움직인 방향</h3><div class="evidence-path"><div class="evidence-node">계몽<br>신문</div><div class="evidence-node">토론회<br>쟁점화</div><div class="evidence-node">상소문<br>압박</div><div class="evidence-node">헌의 6조<br>개혁안</div></div><div class="six-preview"><h3>헌의 6조를 볼 때 잡을 기준</h3><div class="six-grid"><span>① 외세 의존을 줄이려는 자주성</span><span>② 국민 의견을 국정에 반영하려는 민권성</span><span>③ 황제 재가에 기대는 한계</span><span>④ 지도부 중심 운동이라는 한계</span></div></div></div><div class="source-footer"><div class="route"><strong>다음 연결</strong>이 사료들을 바탕으로 독립협회의 밝은 면과 한계를 나누어 봅니다.</div><button class="main" onclick="nextSlide()">다음: 독립협회의 밝은 면 →</button></div></div></div></section>`;
+  }
+
+  function reviseSourceEvidenceSlide(){
+    const idx = findSlideIndex('신문, 회보');
+    if(idx < 0) return;
+    addSourceEvidenceStyles();
+    slides[idx].html = buildSourceEvidenceSlide();
+  }
+
   function reviseTimewarpYears(){
     const years = document.querySelector('.years');
     if(!years) return;
@@ -141,6 +186,7 @@
     reviseIntroSlide();
     reviseQuestionWording();
     reviseBackgroundSlide();
+    reviseSourceEvidenceSlide();
     syncNextButtonLabels();
     reviseTimewarpYears();
     if (typeof render === 'function') render();
