@@ -1,6 +1,6 @@
-// 특정 페이지로 바로 이동하는 점프 내비게이션을 추가한다.
+// 특정 페이지로 바로 이동하는 점프 내비게이션을 상단바 안에 추가한다.
 (function(){
-  const VERSION = '2026-05-26-page-jump';
+  const VERSION = '2026-05-26-page-jump-topbar';
   if (window.__PAGE_JUMP_NAVIGATION__ === VERSION) return;
   window.__PAGE_JUMP_NAVIGATION__ = VERSION;
 
@@ -9,14 +9,16 @@
     const style = document.createElement('style');
     style.id = 'pageJumpNavigationStyles';
     style.textContent = `
-      .page-jump{position:fixed;right:1rem;top:4.9rem;z-index:96;display:flex;gap:.45rem;align-items:center;padding:.45rem .55rem;border:1px solid rgba(245,234,210,.18);border-radius:999px;background:rgba(16,14,11,.82);backdrop-filter:blur(14px);box-shadow:0 14px 36px rgba(0,0,0,.26)}
+      .page-jump{display:flex;gap:.4rem;align-items:center;padding:0;margin:0;min-width:0}
       .page-jump label{font-size:.78rem;color:rgba(245,234,210,.72);font-weight:850;white-space:nowrap}
-      .page-jump input{width:4.2rem;border:1px solid rgba(245,234,210,.22);border-radius:999px;background:rgba(245,234,210,.08);color:var(--paper);padding:.38rem .55rem;font:inherit;font-weight:900;text-align:center;outline:none}
+      .page-jump input{width:3.7rem;border:1px solid rgba(245,234,210,.22);border-radius:999px;background:rgba(245,234,210,.08);color:var(--paper);padding:.38rem .48rem;font:inherit;font-weight:900;text-align:center;outline:none}
       .page-jump input:focus{border-color:rgba(201,154,58,.65);box-shadow:0 0 0 3px rgba(201,154,58,.12)}
-      .page-jump button{border:1px solid rgba(245,234,210,.22);border-radius:999px;background:rgba(201,154,58,.18);color:var(--paper);padding:.38rem .62rem;font:inherit;font-weight:900;cursor:pointer}
+      .page-jump button{border:1px solid rgba(245,234,210,.22);border-radius:999px;background:rgba(201,154,58,.18);color:var(--paper);padding:.38rem .58rem;font:inherit;font-weight:900;cursor:pointer;white-space:nowrap}
       .page-jump button:hover{background:rgba(201,154,58,.28)}
-      .page-jump select{max-width:12rem;border:1px solid rgba(245,234,210,.22);border-radius:999px;background:rgba(16,14,11,.92);color:var(--paper);padding:.38rem .55rem;font:inherit;font-weight:800;outline:none}
-      @media(max-width:720px){.page-jump{left:.7rem;right:.7rem;top:auto;bottom:.7rem;justify-content:center;border-radius:1rem;flex-wrap:wrap}.page-jump select{max-width:100%;flex:1 1 12rem}}
+      .page-jump select{max-width:10.5rem;min-width:7.5rem;border:1px solid rgba(245,234,210,.22);border-radius:999px;background:rgba(16,14,11,.92);color:var(--paper);padding:.38rem .48rem;font:inherit;font-weight:800;outline:none}
+      .nav-actions{align-items:center;flex-wrap:wrap}
+      @media(max-width:980px){.page-jump{order:-1;flex:1 1 100%;justify-content:flex-start}.page-jump select{max-width:none;flex:1 1 12rem}}
+      @media(max-width:560px){.page-jump{gap:.32rem}.page-jump label{display:none}.page-jump input{width:3.2rem}.page-jump select{min-width:0;flex:1 1 9rem}.page-jump button{padding:.36rem .5rem}}
     `;
     document.head.appendChild(style);
   }
@@ -30,7 +32,7 @@
     const h2 = html.match(/<h2>([\s\S]*?)<\/h2>/);
     const h1 = html.match(/<h1>([\s\S]*?)<\/h1>/);
     const title = strip((h2 && h2[1]) || (h1 && h1[1]) || '페이지 ' + (idx + 1));
-    return title.length > 24 ? title.slice(0, 24) + '…' : title;
+    return title.length > 22 ? title.slice(0, 22) + '…' : title;
   }
 
   function createJumpBox(){
@@ -46,7 +48,15 @@
       <button id="pageJumpButton" type="button">가기</button>
       <select id="pageJumpSelect" aria-label="페이지 선택"></select>
     `;
-    document.body.appendChild(box);
+
+    const navActions = document.querySelector('.nav-actions');
+    if(navActions){
+      const resetButton = Array.from(navActions.querySelectorAll('button')).find(btn => (btn.textContent || '').includes('초기화'));
+      if(resetButton) navActions.insertBefore(box, resetButton);
+      else navActions.appendChild(box);
+    }else{
+      document.body.appendChild(box);
+    }
 
     const input = box.querySelector('#pageJumpInput');
     const button = box.querySelector('#pageJumpButton');
