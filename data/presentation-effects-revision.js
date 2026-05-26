@@ -64,6 +64,79 @@
         .nav-actions{grid-column:2;grid-row:1;justify-content:flex-end}
         .status{grid-column:1/-1;grid-row:2;justify-content:flex-start;padding-top:.25rem}
       }
+
+      /* 애니메이션 강화: 카드/박스 등장 애니메이션 */
+      @keyframes cardBounceIn{
+        0%{opacity:0;transform:translateY(24px) scale(0.92) rotate(-0.5deg)}
+        50%{transform:translateY(-3px) scale(1.02) rotate(0.2deg)}
+        100%{opacity:1;transform:translateY(0) scale(1) rotate(0deg)}
+      }
+      @keyframes docScaleIn{
+        0%{opacity:0;transform:scale(0.88) rotate(-1deg)}
+        70%{transform:scale(1.04) rotate(0.5deg)}
+        100%{opacity:1;transform:scale(1) rotate(0deg)}
+      }
+      @keyframes summarySlideIn{
+        0%{opacity:0;transform:translateY(16px)}
+        100%{opacity:1;transform:translateY(0)}
+      }
+
+      /* 버튼 인터랙션 애니메이션 */
+      @keyframes buttonPress{
+        0%{transform:scale(1.08)}
+        50%{transform:scale(0.96)}
+        100%{transform:scale(1.08)}
+      }
+      @keyframes buttonGlow{
+        0%,100%{box-shadow:0 0 0 0 rgba(201,154,58,0.4)}
+        50%{box-shadow:0 0 0 10px rgba(201,154,58,0)}
+      }
+      @keyframes clickBounce{
+        0%{transform:scale(1)}
+        50%{transform:scale(1.15)}
+        100%{transform:scale(1)}
+      }
+      @keyframes fadeOut{
+        to{opacity:0.3;pointer-events:none}
+      }
+
+      /* 카드 애니메이션 적용 */
+      .diary-card{opacity:0;animation:cardBounceIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both;will-change:transform,opacity}
+      .diary-card:nth-child(1){animation-delay:0s}
+      .diary-card:nth-child(2){animation-delay:0.15s}
+      .diary-card:nth-child(3){animation-delay:0.3s}
+      .diary-card:nth-child(4){animation-delay:0.45s}
+      .diary-card:nth-child(5){animation-delay:0.6s}
+      .diary-card:nth-child(6){animation-delay:0.75s}
+
+      .source-doc{opacity:0;animation:docScaleIn 0.65s cubic-bezier(0.34,1.56,0.64,1) both}
+      .source-doc:nth-child(1){animation-delay:0.1s}
+      .source-doc:nth-child(2){animation-delay:0.25s}
+      .source-doc:nth-child(3){animation-delay:0.4s}
+
+      .source-summary article{opacity:0;animation:summarySlideIn 0.5s ease-out both}
+      .source-summary article:nth-child(1){animation-delay:0.2s}
+      .source-summary article:nth-child(2){animation-delay:0.35s}
+      .source-summary article:nth-child(3){animation-delay:0.5s}
+
+      /* 버튼 인터랙션 */
+      button.main,button.sub{transition:all 0.3s cubic-bezier(0.25,0.46,0.45,0.94);position:relative}
+      button.main:hover{transform:scale(1.08);box-shadow:0 8px 20px rgba(201,154,58,0.2);background:rgba(245,234,210,0.15)}
+      button.main:active{animation:buttonPress 0.35s cubic-bezier(0.34,1.56,0.64,1)}
+      button.sub:hover{transform:scale(1.05);background:rgba(245,234,210,0.12)}
+
+      button.selected{animation:buttonGlow 0.8s infinite;background:rgba(201,154,58,0.25)}
+
+      /* 모바일 반응형: 애니메이션 축소 */
+      @media(max-width:768px){
+        @keyframes cardBounceIn{
+          0%{opacity:0;transform:translateY(15px) scale(0.98)}
+          100%{opacity:1;transform:translateY(0) scale(1)}
+        }
+        .diary-card{animation-duration:0.5s}
+        .source-doc{animation-duration:0.55s}
+        .source-summary article{animation-duration:0.45s}
+      }
     `;
     document.head.appendChild(style);
   }
