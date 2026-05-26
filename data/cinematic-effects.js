@@ -1,6 +1,6 @@
 // 시네마틱 영화적 애니메이션: 먹 웨이브 전환, 인트로 글리치, 결론 도장, 황금 입자
 (function(){
-  const VERSION = '2026-05-26-cinematic-v3';
+  const VERSION = '2026-05-26-cinematic-v4';
   if (window.__CINEMATIC_EFFECTS__ === VERSION) return;
   window.__CINEMATIC_EFFECTS__ = VERSION;
 
@@ -31,6 +31,7 @@
         will-change:opacity;
       }
       .ink-sweep.active{opacity:1}
+      .ink-sweep svg, .ink-sweep path, .ink-sweep .ink-splatter{pointer-events:none}
       .ink-sweep svg{width:100%; height:100%; display:block}
       .ink-sweep .ink-splatter{
         position:absolute; inset:0;
@@ -620,6 +621,15 @@
     // routeBridge 및 moving 플래그 정리
     try { const b = document.getElementById('routeBridge'); if(b) b.classList.remove('active'); } catch(e) {}
     try { moving = false; } catch(e) {} // eslint-disable-line no-undef
+    // 선택지 버튼 상태 리셋: goTo()는 render()를 호출하지 않아
+    // attachChoiceAnimations가 전 슬라이드에서 설정한 opacity/pointer-events가 남아있음
+    try {
+      document.querySelectorAll('.choice, [data-choice]').forEach(btn => {
+        btn.style.animation = '';
+        btn.style.pointerEvents = '';
+        btn.classList.remove('selected');
+      });
+    } catch(e) {}
     // 나머지 애니메이션 동안 새 스윕이 시작되지 않도록 재잠금
     window.__INK_SWEEPING__ = true;
     // 특수 슬라이드 시네마틱 효과 트리거
