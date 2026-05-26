@@ -1,7 +1,7 @@
 // 발표 시작 시간여행 이펙트의 태블릿 화면 보정과
 // 발표 종료 시 현재로 돌아오는 이펙트를 추가한다.
 (function(){
-  const VERSION = '2026-05-26-return-present-timewarp-fix';
+  const VERSION = '2026-05-26-nav-responsive-v2';
   if (window.__PRESENTATION_EFFECTS_REVISION__ === VERSION) return;
   window.__PRESENTATION_EFFECTS_REVISION__ = VERSION;
 
@@ -54,6 +54,16 @@
       @keyframes returnTunnel{from{transform:scale(1.6) rotate(-170deg);opacity:.15}45%{opacity:.92}to{transform:scale(.76) rotate(0deg);opacity:.25}}
       @keyframes returnYear{0%{opacity:0;transform:translate(-50%,-50%) scale(.62);filter:blur(2px)}18%,68%{opacity:.95;transform:translate(-50%,-50%) scale(1);filter:blur(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(2.05);filter:blur(8px)}}
       @keyframes returnMsg{0%,42%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.98)}55%,84%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-8px) scale(.98)}}
+
+      /* 981-1200px 중간 화면(iPad 가로·작은 노트북)에서
+         브랜드+내비게이션 액션을 1행, 상태 정보를 2행에 배치해
+         상태 알약이 밀리거나 잘리지 않게 보정 */
+      @media(max-width:1200px) and (min-width:981px){
+        .nav{grid-template-columns:auto 1fr;grid-template-rows:auto auto}
+        .brand{grid-column:1;grid-row:1}
+        .nav-actions{grid-column:2;grid-row:1;justify-content:flex-end}
+        .status{grid-column:1/-1;grid-row:2;justify-content:flex-start;padding-top:.25rem}
+      }
     `;
     document.head.appendChild(style);
   }
