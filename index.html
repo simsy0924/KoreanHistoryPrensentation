@@ -25,14 +25,14 @@
     <p id="loadMessage">원본 발표 자료 로딩 중</p>
     <div class="actions" id="fallbackActions" style="display:none">
       <button onclick="location.reload()">다시 시도</button>
-      <a href="./index-yunchiho.html?v=20260526-note-revision">예비 연결판 열기</a>
+      <a href="./index-yunchiho.html?v=20260526-source-content">예비 연결판 열기</a>
     </div>
   </div>
 </div>
 <iframe id="presentationFrame" title="역사는 흑백이 아니다 발표 사이트"></iframe>
 <script>
 (function(){
-  const VERSION='20260526-note-revision';
+  const VERSION='20260526-source-content';
   const ORIGINAL_INDEX_URL='https://raw.githubusercontent.com/simsy0924/KoreanHistoryPrensentation/22a5820d6640df3ba65c580c65154be8989caa48/index.html?raw='+VERSION;
   const frame=document.getElementById('presentationFrame');
   const loader=document.getElementById('loader');
@@ -78,6 +78,8 @@
       await injectScript(doc,'./data/yunchiho-diary-section.js');
       setMessage('필기 수정안 반영 중');
       await injectScript(doc,'./data/presentation-revision-notes.js');
+      setMessage('6단계 내용 보강 중');
+      await injectScript(doc,'./data/source-slide-content-revision.js');
       setMessage('연결 완료');
       setTimeout(()=>loader.classList.add('hidden'),650);
     }catch(error){
