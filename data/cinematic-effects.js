@@ -1,6 +1,6 @@
 // 시네마틱 영화적 애니메이션: 먹 웨이브 전환, 인트로 글리치, 결론 도장, 황금 입자
 (function(){
-  const VERSION = '2026-05-26-cinematic-v4';
+  const VERSION = '2026-05-26-cinematic-v5';
   if (window.__CINEMATIC_EFFECTS__ === VERSION) return;
   window.__CINEMATIC_EFFECTS__ = VERSION;
 
@@ -601,24 +601,19 @@
     return false;
   }
 
-  // goTo를 직접 호출하는 공통 미드포인트 핸들러
-  // 래퍼 체인(nextSlide→linkedGo→시네마틱 훅)을 완전히 건너뛰어
-  // __INK_SWEEPING__ 재진입 데드락을 방지한다
+  // goTo를 직접 호출하는 공통 네비게이션 핸들러
+  // 래퍼 체인(nextSlide→linkedGo→시네마틱 훅)을 완전히 건너뛰어 재진입 데드락을 방지
   function doNavigate(navTarget, isChapterChange){
-    // 락을 임시 해제해 중첩 호출이 차단되지 않도록 함
-    window.__INK_SWEEPING__ = false;
     try {
       if(typeof window.goTo === 'function'){
         window.goTo(navTarget);
       } else {
-        // goTo가 없을 경우 직접 조작
         try { current = navTarget; } catch(e) {} // eslint-disable-line no-undef
         if(typeof window.render === 'function') window.render();
       }
     } catch(e){
       console.warn('[cinematic] doNavigate failed:', e);
     }
-    // routeBridge 및 moving 플래그 정리
     try { const b = document.getElementById('routeBridge'); if(b) b.classList.remove('active'); } catch(e) {}
     try { moving = false; } catch(e) {} // eslint-disable-line no-undef
     // 선택지 버튼 상태 리셋: goTo()는 render()를 호출하지 않아
@@ -630,9 +625,6 @@
         btn.classList.remove('selected');
       });
     } catch(e) {}
-    // 나머지 애니메이션 동안 새 스윕이 시작되지 않도록 재잠금
-    window.__INK_SWEEPING__ = true;
-    // 특수 슬라이드 시네마틱 효과 트리거
     if(isChapterChange && !isMobile){
       setTimeout(() => playGlitchPulse(document.querySelector('.slide.active')), 50);
     }
@@ -660,25 +652,11 @@
           typeof target === 'number' ? target : parseInt(target, 10) || 0,
           slides.length - 1
         ));
-
-        if(safeTarget === current){
-          return oldLinkedGo.call(this, target, label);
-        }
-        if(isReturnOrTimewarpTarget(safeTarget)){
-          return oldLinkedGo.call(this, target, label);
-        }
-        if(window.__INK_SWEEPING__) return;
-        window.__INK_SWEEPING__ = true;
+        if(safeTarget === current) return oldLinkedGo.call(this, target, label);
+        if(isReturnOrTimewarpTarget(safeTarget)) return oldLinkedGo.call(this, target, label);
 
         const indexDelta = Math.abs(safeTarget - current);
-        const isChapterChange = indexDelta >= 2;
-        const duration = isChapterChange ? (isMobile ? 700 : 1200) : undefined;
-
-        playInkSweep(() => {
-          doNavigate(safeTarget, isChapterChange);
-        }, duration)
-        .then(() => { window.__INK_SWEEPING__ = false; })
-        .catch(() => { window.__INK_SWEEPING__ = false; });
+        doNavigate(safeTarget, indexDelta >= 2);
       };
     }
 
@@ -692,20 +670,9 @@
           (typeof current === 'number' ? current : 0) + 1,
           slides.length - 1
         );
-        if(isReturnOrTimewarpTarget(target)){
-          return oldNextSlide.call(this);
-        }
-        if(target === current){
-          return oldNextSlide.call(this);
-        }
-        if(window.__INK_SWEEPING__) return;
-        window.__INK_SWEEPING__ = true;
-
-        playInkSweep(() => {
-          doNavigate(target, false);
-        })
-        .then(() => { window.__INK_SWEEPING__ = false; })
-        .catch(() => { window.__INK_SWEEPING__ = false; });
+        if(isReturnOrTimewarpTarget(target)) return oldNextSlide.call(this);
+        if(target === current) return oldNextSlide.call(this);
+        doNavigate(target, false);
       };
     }
   }
