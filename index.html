@@ -88,6 +88,8 @@
       await injectScript(doc,'./data/page-jump-navigation.js');
       setMessage('이펙트 보정 적용 중');
       await injectScript(doc,'./data/presentation-effects-revision.js');
+      setMessage('애니메이션 강화 중');
+      await injectScript(doc,'./data/animation-enhancements.js');
       setMessage('연결 완료');
       setTimeout(()=>loader.classList.add('hidden'),650);
     }catch(error){
