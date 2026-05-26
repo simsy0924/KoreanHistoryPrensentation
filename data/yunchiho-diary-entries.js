@@ -43,6 +43,26 @@ window.YUNCHIHO_DIARY_ENTRIES = [
     verification: { quoteChecked: true, dateChecked: true, sourceUrlChecked: true }
   },
   {
+    id: "yc-1898-11-05-foreign-puppets-last-hope",
+    date: "1898-11-05",
+    year: 1898,
+    lunarDate: "음력 10월 22일",
+    weekday: "토요일",
+    sourceTitle: "국역 윤치호 영문 일기 5 (尹致昊日記 五)",
+    sourceCollection: "한국사료총서",
+    sourceUrl: "https://db.history.go.kr/diachronic/level.do?levelId=sa_028r_0010_0090_0040",
+    issueCommentUrl: "https://github.com/simsy0924/KoreanHistoryPrensentation/issues/1",
+    topics: ["독립협회", "일본", "러시아", "친일", "친러", "이권 침탈", "감정적 언어"],
+    cardTitle: "독립협회는 대한의 마지막 희망이었나",
+    quote: "저주받을 왜놈들! 그들이 대한의 마지막 희망인 독립협회를 분쇄시키는 데 러시아인들을 돕고 있는 이유를 알게 될 것을 나는 참으로 희망한다.",
+    summary: "윤치호는 1898년 11월 5일 일기에서 정부가 친일·친러 인물에게 장악되었다고 비판하고, 일본과 러시아가 조선의 이권을 얻기 위해 내부 정치 세력을 지원한다고 보았다.",
+    interpretation: "이 사료는 독립협회를 자주독립의 마지막 희망으로 본 절박함을 보여준다. 동시에 '노예', '노비', '왜놈들' 같은 표현은 윤치호의 외세 인식이 매우 감정적이고 적대적인 언어로 나타났음을 보여준다.",
+    question: "윤치호의 외세 비판은 자주독립 의식인가, 아니면 특정 외세와 정치 세력에 대한 감정적 반감인가?",
+    axis: "외세와 내부 정치",
+    importance: 5,
+    verification: { quoteChecked: true, dateChecked: true, sourceUrlChecked: false, note: "사용자가 제공한 인용문과 출처 표기를 바탕으로 입력함" }
+  },
+  {
     id: "yc-1898-11-06-six-articles-public-indifference",
     date: "1898-11-06",
     year: 1898,
