@@ -1,6 +1,6 @@
 // 시네마틱 영화적 애니메이션: 먹 웨이브 전환, 인트로 글리치, 결론 도장, 황금 입자
 (function(){
-  const VERSION = '2026-05-26-cinematic-v6';
+  const VERSION = '2026-05-27-cinematic-v7';
   if (window.__CINEMATIC_EFFECTS__ === VERSION) return;
   window.__CINEMATIC_EFFECTS__ = VERSION;
 
@@ -147,9 +147,9 @@
         100%{opacity:1; transform:translate(0,0)       rotate(-7deg)  scale(1);   filter:blur(0)}
       }
       @keyframes stampSettle{
-        0%  {box-shadow:inset 0 0 0 .15rem rgba(141,47,39,.4)}
+        0%  {box-shadow:inset 0 0 0 .15rem rgba(141,47,39,.4); filter:blur(0)}
         100%{box-shadow:inset 0 0 0 .15rem rgba(141,47,39,.6),
-                        0 0 32px rgba(141,47,39,.4)}
+                        0 0 32px rgba(141,47,39,.4); filter:blur(0)}
       }
       @keyframes camShake{
         0%,100%{transform:translate(0,0)}
