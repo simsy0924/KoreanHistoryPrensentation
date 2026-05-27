@@ -1,9 +1,22 @@
 // 학생 필기 수정안을 발표 흐름에 반영하는 후처리 스크립트.
-// 핵심 수정: 첫 화면 문구, '손들기 질문' 표현, 1번 질문 선택지, 2단계 배경 타임라인, 6단계 사료 UI.
+// 핵심 수정: 첫 화면 문구, '손들기 질문' 표현, 1번 질문 선택지, 2단계 배경 타임라인/이미지 갤러리, 6단계 사료 UI.
 (function(){
-  const VERSION = '2026-05-26-source-ui';
+  const VERSION = '2026-05-27-stage2-gallery-v3';
   if (window.__PRESENTATION_NOTE_REVISION__ === VERSION) return;
   window.__PRESENTATION_NOTE_REVISION__ = VERSION;
+
+  const backgroundGalleryItems = [
+    {key:'gabo', year:'1894', title:'갑오개혁', image:'assets/images/갑오개혁.jpg', desc:'갑오개혁을 주도했던 김홍집'},
+    {key:'eulmi', year:'1895', title:'을미사변', image:'assets/images/을미사변.jpg', desc:'을미사변의 자객들'},
+    {key:'agwan', year:'1896', title:'아관파천', image:'assets/images/아관파천.webp', desc:'아관파천으로 고종이 피신한 당시 러시아 공사관'},
+    {key:'independence', year:'1896', title:'독립협회', image:'assets/images/독립협회.jpg', desc:'독립협회가 대중에게 연설하는 그림'},
+    {key:'empire', year:'1897', title:'대한제국', image:'assets/images/대한제국.jpg', desc:'파리만국박람회의 대한제국관 화보'},
+    {key:'gwangmu', year:'1897~', title:'광무개혁', image:'assets/images/광무개혁.webp', desc:'광무개혁으로 만든 선박의 선원들'},
+    {key:'manmin', year:'1898', title:'만민공동회', image:'assets/images/만민공동회.png', desc:'만민공동회의 모습'},
+    {key:'six', year:'1898', title:'헌의 6조', image:'assets/images/헌의6조.jpg', desc:'헌의 6조 사진'},
+    {key:'gukje', year:'1899', title:'대한국 국제', image:'assets/images/대한국국제.jpeg', desc:'대한국 국제 사진'},
+    {key:'war', year:'1904', title:'러일전쟁', image:'assets/images/러일전쟁.jpg', desc:'러일 전쟁을 묘사한 그림'}
+  ];
 
   function strip(html){
     return String(html || '')
@@ -105,28 +118,81 @@
     }
   }
 
+  function addBackgroundGalleryStyles(){
+    if(document.getElementById('backgroundGalleryStyles')) return;
+    const style = document.createElement('style');
+    style.id = 'backgroundGalleryStyles';
+    style.textContent = `
+      .bg-stage{display:grid;grid-template-columns:.88fr 1.12fr;gap:1rem;align-items:stretch}
+      .bg-left{display:flex;flex-direction:column;justify-content:space-between;gap:1rem}
+      .bg-gallery{display:grid;gap:.85rem}
+      .era-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem}
+      .era-btn{border:1px solid rgba(245,234,210,.18);background:rgba(245,234,210,.07);color:var(--paper);border-radius:.85rem;padding:.5rem .55rem;font-weight:900;font-size:.86rem;cursor:pointer;text-align:left;transition:.18s ease}
+      .era-btn span{display:block;color:var(--gold);font-size:.72rem;margin-bottom:.08rem}
+      .era-btn:hover,.era-btn.active{background:rgba(201,154,58,.18);border-color:rgba(201,154,58,.42);transform:translateY(-1px)}
+      .era-image-card{position:relative;min-height:21rem;border-radius:1.25rem;overflow:hidden;background:#21180f;border:1px solid rgba(245,234,210,.14);box-shadow:0 22px 60px rgba(0,0,0,.28)}
+      .era-image-card img{width:100%;height:100%;min-height:21rem;object-fit:cover;display:block;filter:saturate(.9) contrast(1.03);transition:opacity .18s ease}
+      .era-image-caption{position:absolute;left:0;right:0;bottom:0;padding:1rem;background:linear-gradient(transparent,rgba(10,8,6,.88) 22%,rgba(10,8,6,.96));color:var(--paper)}
+      .era-image-caption strong{display:block;font-family:"Noto Serif KR",serif;font-size:1.25rem;margin-bottom:.25rem}
+      .era-image-caption p{margin:0;color:rgba(255,248,232,.78);line-height:1.5}
+      .bg-mini-timeline{display:grid;gap:.45rem;margin-top:.75rem;max-height:15rem;overflow:auto;padding-right:.25rem}
+      .bg-mini-timeline .time{padding:.55rem .65rem;border-radius:.75rem;background:rgba(245,234,210,.065);border:1px solid rgba(245,234,210,.1)}
+      .bg-mini-timeline .year{font-size:.76rem;min-width:3.1rem}
+      .bg-mini-timeline strong{font-size:.92rem}
+      .bg-mini-timeline span{font-size:.82rem;line-height:1.35}
+      @media(max-width:980px){.bg-stage{grid-template-columns:1fr}.era-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}.era-image-card,.era-image-card img{min-height:17rem}}
+    `;
+    document.head.appendChild(style);
+  }
+
   function timeItem(year, title, body){
     return `<div class="time"><div class="year">${year}</div><div><strong>${title}</strong><br><span>${body}</span></div></div>`;
   }
 
+  function galleryButton(item, active){
+    return `<button class="era-btn${active ? ' active' : ''}" onclick="window.showBackgroundImage('${item.key}')"><span>${item.year}</span>${item.title}</button>`;
+  }
+
+  window.showBackgroundImage = function(key){
+    const item = backgroundGalleryItems.find(v => v.key === key) || backgroundGalleryItems[0];
+    const img = document.getElementById('eraGalleryImage');
+    const title = document.getElementById('eraGalleryTitle');
+    const desc = document.getElementById('eraGalleryDesc');
+    if(img){
+      img.style.opacity = '0';
+      setTimeout(() => {
+        img.src = item.image;
+        img.alt = item.title;
+        img.style.opacity = '1';
+      }, 90);
+    }
+    if(title) title.textContent = item.title;
+    if(desc) desc.textContent = item.desc;
+    document.querySelectorAll('.era-btn').forEach(btn => btn.classList.remove('active'));
+    const idx = backgroundGalleryItems.findIndex(v => v.key === item.key);
+    const buttons = document.querySelectorAll('.era-btn');
+    if(buttons[idx]) buttons[idx].classList.add('active');
+  };
+
   function buildBackgroundSlide(){
-    return `<section class="slide"><div class="wrap grid"><div><div class="kicker">2단계 · 배경 이해</div><h2>혼란의 시대: 외세, 황제, 민중</h2><p class="lead">독립협회와 광무개혁은 서로 따로 나온 사건이 아닙니다. 갑오개혁 이후 외세의 압박, 황제권 강화, 민중의 정치 참여 요구가 동시에 부딪히던 시대의 선택이었습니다.</p><div class="dark" id="whyReflection">첫 질문의 선택이 여기에 반영됩니다.</div></div><div class="paper"><div class="timeline">
+    const first = backgroundGalleryItems[0];
+    return `<section class="slide"><div class="wrap bg-stage"><div class="bg-left"><div><div class="kicker">2단계 · 배경 이해</div><h2>혼란의 시대:<br>외세, 황제, 민중</h2><p class="lead">독립협회와 광무개혁은 서로 따로 나온 사건이 아닙니다. 갑오개혁 이후 외세의 압박, 황제권 강화, 민중의 정치 참여 요구가 동시에 부딪히던 시대의 선택이었습니다.</p><div class="dark" id="whyReflection">첫 질문의 선택이 여기에 반영됩니다.</div></div><div class="bg-mini-timeline">
       ${timeItem('1894','갑오개혁','근대 개혁이 시도되었지만 일본 영향력과 민중 지지 부족 등 한계가 있었습니다.')}
       ${timeItem('1895','을미사변','명성황후 시해로 일본 세력의 폭력성과 조선 정치의 불안정성이 드러났습니다.')}
       ${timeItem('1896','아관파천','일본의 영향력을 줄이려 했지만, 또 다른 외세인 러시아에 의존했다는 한계가 있었습니다.')}
-      ${timeItem('1896','독립신문 창간과 독립협회 창립','독립신문·독립문 건립 운동·토론회 등을 통해 자주독립 요구가 확산되었습니다.')}
+      ${timeItem('1896','독립협회와 독립신문','독립신문·독립문 건립 운동·토론회 등을 통해 자주독립 요구가 확산되었습니다.')}
       ${timeItem('1897','대한제국 수립','고종이 황제로 즉위하고 대한제국을 선포하며 자주 국가임을 내세웠습니다.')}
-      ${timeItem('1897~','광무개혁 실시','구본신참 원칙 아래 군사·토지·산업·근대 시설 개혁을 추진했지만, 민권 보장 부족과 열강 간섭의 한계가 있었습니다.')}
-      ${timeItem('1898','만민공동회','자주 국권 운동이 본격적으로 전개되고, 민중이 정치 의견을 드러내는 장이 열렸습니다.')}
-      ${timeItem('1898','관민공동회와 헌의 6조','국민의 뜻을 국정에 반영하려는 요구가 헌의 6조로 정리되었습니다.')}
-      ${timeItem('1899','대한국 국제','독립협회 해산 이후 대한제국의 황제권이 더욱 강하게 규정되었습니다.')}
+      ${timeItem('1897~','광무개혁 실시','구본신참 원칙 아래 군사·토지·산업·근대 시설 개혁을 추진했습니다.')}
+      ${timeItem('1898','만민공동회와 헌의 6조','민중의 정치 참여와 국정 개혁 요구가 공개 집회와 헌의 6조로 드러났습니다.')}
+      ${timeItem('1899','대한국 국제','대한제국의 황제권이 강하게 규정되었습니다.')}
       ${timeItem('1904','러일전쟁','일본의 영향력이 커지며 대한제국의 자주권이 크게 약화되는 계기가 되었습니다.')}
-    </div><div class="next"><button class="main" onclick="nextSlide()">다음: 대한제국의 출발 →</button></div></div></div></section>`;
+    </div></div><div class="paper bg-gallery"><div class="era-buttons">${backgroundGalleryItems.map((item, idx) => galleryButton(item, idx === 0)).join('')}</div><figure class="era-image-card"><img id="eraGalleryImage" src="${first.image}" alt="${first.title}"><figcaption class="era-image-caption"><strong id="eraGalleryTitle">${first.title}</strong><p id="eraGalleryDesc">${first.desc}</p></figcaption></figure><div class="next"><button class="main" onclick="nextSlide()">다음: 대한제국의 출발 →</button></div></div></div></section>`;
   }
 
   function reviseBackgroundSlide(){
     const idx = findSlideIndex('혼란의 시대');
     if(idx < 0) return;
+    addBackgroundGalleryStyles();
     slides[idx].html = buildBackgroundSlide();
   }
 
