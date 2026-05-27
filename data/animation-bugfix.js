@@ -1,6 +1,6 @@
 // 안정화 패치: 선택 도장 CSS 충돌 수정, 첫 슬라이드 반짝임 재실행, 잘못된 결론 도장 제거
 (function(){
-  const VERSION = '2026-05-27-animation-bugfix-v4-stable';
+  const VERSION = '2026-05-27-animation-bugfix-v5-stable';
   if (window.__ANIMATION_BUGFIX__ === VERSION) return;
   window.__ANIMATION_BUGFIX__ = VERSION;
 
@@ -15,9 +15,6 @@
     style.id = 'animationBugfixStyles';
     style.dataset.version = VERSION;
     style.textContent = `
-      /* 이전 실험용 먹물 보정은 렉과 시야 방해가 있어서 안정화 모드에서는 끈다. */
-      #inkPatchSweep{display:none!important;opacity:0!important;animation:none!important}
-
       @media (pointer:coarse){
         body.shake-once{animation:none!important;transform:none!important;filter:none!important}
       }
@@ -136,11 +133,6 @@
     return 0;
   }
 
-  function removeOldInkPatch(){
-    const ink = document.getElementById('inkPatchSweep');
-    if(ink) ink.remove();
-  }
-
   function isIntroSlide(slide){
     if(!slide) return false;
     const idx = currentIndex();
@@ -228,7 +220,6 @@
   function refreshEffects(){
     refreshTimer = null;
     addStyles();
-    removeOldInkPatch();
     const slide = getActiveSlide();
     if(!slide) return;
     removeWrongConclusionStamp(slide);
@@ -260,7 +251,6 @@
 
   function boot(attempts){
     addStyles();
-    removeOldInkPatch();
     hook();
     refreshEffects();
     if(attempts > 0) setTimeout(() => boot(attempts - 1), 180);
