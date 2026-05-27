@@ -1,6 +1,6 @@
-// 최종 안정화 보정: 무거운 감시 제거, 먹물 보정 비활성화, 결론 도장 문구만 보정
+// 최종 안정화 보정: 무거운 감시 제거, 결론 도장 문구만 보정
 (function(){
-  const VERSION = '2026-05-27-animation-final-polish-v2-stable';
+  const VERSION = '2026-05-27-animation-final-polish-v3-lite-ink-compatible';
   if(window.__ANIMATION_FINAL_POLISH__ === VERSION) return;
   window.__ANIMATION_FINAL_POLISH__ = VERSION;
 
@@ -13,9 +13,6 @@
     style.id = 'animationFinalPolishStyles';
     style.dataset.version = VERSION;
     style.textContent = `
-      /* 이전 먹물 보정은 렉과 시야 방해가 있어 안정화 모드에서 완전히 비활성화 */
-      #inkPatchSweep{display:none!important;opacity:0!important;animation:none!important}
-
       .cinematic-verdict-stamp{
         min-width:8.4rem!important;
         width:auto!important;
@@ -77,8 +74,6 @@
 
   function boot(){
     addStyles();
-    const oldInk = document.getElementById('inkPatchSweep');
-    if(oldInk) oldInk.remove();
     normalizeConclusionStamp();
   }
 
