@@ -1,7 +1,7 @@
 // 학생 필기 수정안을 발표 흐름에 반영하는 후처리 스크립트.
 // 핵심 수정: 첫 화면 문구, '손들기 질문' 표현, 1번 질문 선택지, 2단계 배경 타임라인/이미지 갤러리, 6단계 사료 UI.
 (function(){
-  const VERSION = '2026-05-27-stage2-gallery-v3';
+  const VERSION = '2026-05-27-stage2-gallery-v4-clean';
   if (window.__PRESENTATION_NOTE_REVISION__ === VERSION) return;
   window.__PRESENTATION_NOTE_REVISION__ = VERSION;
 
@@ -12,7 +12,7 @@
     {key:'independence', year:'1896', title:'독립협회', image:'assets/images/독립협회.jpg', desc:'독립협회가 대중에게 연설하는 그림'},
     {key:'empire', year:'1897', title:'대한제국', image:'assets/images/대한제국.jpg', desc:'파리만국박람회의 대한제국관 화보'},
     {key:'gwangmu', year:'1897~', title:'광무개혁', image:'assets/images/광무개혁.webp', desc:'광무개혁으로 만든 선박의 선원들'},
-    {key:'manmin', year:'1898', title:'만민공동회', image:'assets/images/만민공동회.png', desc:'만민공동회의 모습'},
+    {key:'manmin', year:'1898', title:'만민공동회', image:'assets/images/만민 공동회.png', desc:'만민공동회의 모습'},
     {key:'six', year:'1898', title:'헌의 6조', image:'assets/images/헌의6조.jpg', desc:'헌의 6조 사진'},
     {key:'gukje', year:'1899', title:'대한국 국제', image:'assets/images/대한국국제.jpeg', desc:'대한국 국제 사진'},
     {key:'war', year:'1904', title:'러일전쟁', image:'assets/images/러일전쟁.jpg', desc:'러일 전쟁을 묘사한 그림'}
@@ -123,24 +123,28 @@
     const style = document.createElement('style');
     style.id = 'backgroundGalleryStyles';
     style.textContent = `
-      .bg-stage{display:grid;grid-template-columns:.88fr 1.12fr;gap:1rem;align-items:stretch}
-      .bg-left{display:flex;flex-direction:column;justify-content:space-between;gap:1rem}
-      .bg-gallery{display:grid;gap:.85rem}
-      .era-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem}
-      .era-btn{border:1px solid rgba(245,234,210,.18);background:rgba(245,234,210,.07);color:var(--paper);border-radius:.85rem;padding:.5rem .55rem;font-weight:900;font-size:.86rem;cursor:pointer;text-align:left;transition:.18s ease}
-      .era-btn span{display:block;color:var(--gold);font-size:.72rem;margin-bottom:.08rem}
-      .era-btn:hover,.era-btn.active{background:rgba(201,154,58,.18);border-color:rgba(201,154,58,.42);transform:translateY(-1px)}
-      .era-image-card{position:relative;min-height:21rem;border-radius:1.25rem;overflow:hidden;background:#21180f;border:1px solid rgba(245,234,210,.14);box-shadow:0 22px 60px rgba(0,0,0,.28)}
-      .era-image-card img{width:100%;height:100%;min-height:21rem;object-fit:cover;display:block;filter:saturate(.9) contrast(1.03);transition:opacity .18s ease}
-      .era-image-caption{position:absolute;left:0;right:0;bottom:0;padding:1rem;background:linear-gradient(transparent,rgba(10,8,6,.88) 22%,rgba(10,8,6,.96));color:var(--paper)}
-      .era-image-caption strong{display:block;font-family:"Noto Serif KR",serif;font-size:1.25rem;margin-bottom:.25rem}
-      .era-image-caption p{margin:0;color:rgba(255,248,232,.78);line-height:1.5}
+      .bg-stage{display:grid;grid-template-columns:.86fr 1.14fr;gap:1rem;align-items:stretch}
+      .bg-left{display:flex;flex-direction:column;justify-content:space-between;gap:1rem;min-width:0}
+      .bg-left .lead{color:rgba(255,248,232,.88)}
+      .bg-gallery{display:grid;gap:.85rem;min-width:0}
+      .era-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.48rem}
+      .era-btn{border:1px solid rgba(245,234,210,.24);background:linear-gradient(180deg,rgba(255,248,232,.13),rgba(255,248,232,.07));color:#fff7df;border-radius:.9rem;padding:.58rem .68rem;font-weight:950;font-size:.88rem;cursor:pointer;text-align:left;transition:transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease;box-shadow:inset 0 0 0 1px rgba(255,255,255,.025)}
+      .era-btn span{display:block;color:#f4cf78;font-size:.73rem;margin-bottom:.1rem;font-weight:950;letter-spacing:.01em}
+      .era-btn:hover{background:linear-gradient(180deg,rgba(201,154,58,.24),rgba(245,234,210,.10));border-color:rgba(244,207,120,.55);transform:translateY(-1px)}
+      .era-btn.active{background:linear-gradient(180deg,#f1c76e,#c99a3a);border-color:#f7df9d;color:#21160b;box-shadow:0 10px 22px rgba(0,0,0,.22)}
+      .era-btn.active span{color:#5a3504}
+      .era-image-card{position:relative;min-height:21.5rem;border-radius:1.3rem;overflow:hidden;background:#21180f;border:1px solid rgba(245,234,210,.20);box-shadow:0 22px 60px rgba(0,0,0,.32)}
+      .era-image-card:before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.12) 46%,rgba(0,0,0,.68));pointer-events:none}
+      .era-image-card img{width:100%;height:100%;min-height:21.5rem;object-fit:cover;display:block;filter:saturate(.96) contrast(1.04);transition:opacity .18s ease}
+      .era-image-caption{position:absolute;left:.75rem;right:.75rem;bottom:.75rem;z-index:2;padding:.88rem 1rem;background:rgba(12,10,8,.84);border:1px solid rgba(245,234,210,.18);border-radius:1rem;color:#fff8e8;backdrop-filter:blur(10px);box-shadow:0 16px 34px rgba(0,0,0,.28)}
+      .era-image-caption strong{display:block;font-family:"Noto Serif KR",serif;font-size:1.28rem;margin-bottom:.25rem;color:#fff1c9;letter-spacing:-.04em}
+      .era-image-caption p{margin:0;color:rgba(255,248,232,.92);line-height:1.5;font-weight:700}
       .bg-mini-timeline{display:grid;gap:.45rem;margin-top:.75rem;max-height:15rem;overflow:auto;padding-right:.25rem}
-      .bg-mini-timeline .time{padding:.55rem .65rem;border-radius:.75rem;background:rgba(245,234,210,.065);border:1px solid rgba(245,234,210,.1)}
-      .bg-mini-timeline .year{font-size:.76rem;min-width:3.1rem}
-      .bg-mini-timeline strong{font-size:.92rem}
-      .bg-mini-timeline span{font-size:.82rem;line-height:1.35}
-      @media(max-width:980px){.bg-stage{grid-template-columns:1fr}.era-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}.era-image-card,.era-image-card img{min-height:17rem}}
+      .bg-mini-timeline .time{padding:.58rem .68rem;border-radius:.82rem;background:rgba(245,234,210,.09);border:1px solid rgba(245,234,210,.16)}
+      .bg-mini-timeline .year{font-size:.76rem;min-width:3.1rem;color:#f4cf78;font-weight:950}
+      .bg-mini-timeline strong{font-size:.92rem;color:#fff8e8}
+      .bg-mini-timeline span{font-size:.82rem;line-height:1.35;color:rgba(255,248,232,.80)}
+      @media(max-width:980px){.bg-stage{grid-template-columns:1fr}.era-buttons{grid-template-columns:repeat(2,minmax(0,1fr))}.era-image-card,.era-image-card img{min-height:17.5rem}}
     `;
     document.head.appendChild(style);
   }
