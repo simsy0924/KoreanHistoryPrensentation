@@ -1,6 +1,6 @@
 // 가벼운 먹물 전환: 일반 슬라이드 이동에만 재생, 타임머신 효과와 충돌하지 않음
 (function(){
-  const VERSION = '2026-05-27-ink-transition-lite-v2-deeper-longer';
+  const VERSION = '2026-05-27-ink-transition-lite-v3-return-safe';
   if(window.__INK_TRANSITION_LITE__ === VERSION) return;
   window.__INK_TRANSITION_LITE__ = VERSION;
 
@@ -95,15 +95,50 @@
     return !!document.querySelector('.timewarp.active,#timewarp.active,.return-present.active,#returnPresentEffect.active');
   }
 
+  function getCurrent(){
+    try{ return typeof current === 'number' ? current : -1; }catch(e){ return -1; }
+  }
+
+  function getSlideCount(){
+    try{ return Array.isArray(slides) ? slides.length : 0; }catch(e){ return 0; }
+  }
+
+  function isReturnToPresentTarget(target){
+    const count = getSlideCount();
+    const idx = getCurrent();
+    return count > 1 && idx === count - 2 && target === count - 1;
+  }
+
+  function isNextReturnToPresent(){
+    const count = getSlideCount();
+    const idx = getCurrent();
+    return count > 1 && idx === count - 2;
+  }
+
   function isTimeMachineTrigger(args, fnName){
     if(fnName === 'startTimeTravel') return true;
+    if(fnName === 'nextSlide' && isNextReturnToPresent()) return true;
     const first = args && args.length ? args[0] : null;
-    try{
-      if(Array.isArray(slides) && typeof current === 'number'){
-        const target = typeof first === 'number' ? first : parseInt(first, 10);
-        if(Number.isFinite(target) && target === slides.length - 1 && current === slides.length - 2) return true;
-      }
-    }catch(e){}
+    const target = typeof first === 'number' ? first : parseInt(first, 10);
+    return Number.isFinite(target) && isReturnToPresentTarget(target);
+  }
+
+  function shouldSkipClick(button){
+    const code = button.getAttribute('onclick') || '';
+    const text = button.textContent || '';
+    if(/startTimeTravel|발표 시작|현재로 돌아|timewarp|return/i.test(code + ' ' + text)) return true;
+    if(/nextSlide/.test(code) && isNextReturnToPresent()) return true;
+    if(/다음/.test(text) && isNextReturnToPresent()) return true;
+    const goToMatch = code.match(/goTo\(([^)]+)\)|linkedGo\(([^),]+)/);
+    if(goToMatch){
+      const expr = (goToMatch[1] || goToMatch[2] || '').trim();
+      let target = NaN;
+      try{
+        if(expr === 'slides.length-1' || expr === 'slides.length - 1') target = getSlideCount() - 1;
+        else target = parseInt(expr, 10);
+      }catch(e){}
+      if(Number.isFinite(target) && isReturnToPresentTarget(target)) return true;
+    }
     return false;
   }
 
@@ -145,9 +180,9 @@
   document.addEventListener('click', event => {
     const button = event.target.closest('button,a');
     if(!button) return;
+    if(shouldSkipClick(button)) return;
     const code = button.getAttribute('onclick') || '';
     const text = button.textContent || '';
-    if(/startTimeTravel|발표 시작|현재로 돌아|timewarp|return/i.test(code + ' ' + text)) return;
     if(/다음|이전|가기|이동/.test(text) || /goTo|linkedGo|nextSlide|prevSlide/.test(code)) playInk();
   }, true);
 
