@@ -1,11 +1,11 @@
-// 안정화 패치: 선택 도장 CSS 충돌 수정, 첫 슬라이드 글자별 샤라랑 재실행, 잘못된 결론 도장 제거, 도장 애니메이션 재시작
+// 안정화 패치: 선택 도장 쾅 애니메이션, 첫 슬라이드 자연스러운 글자별 샤라랑, 결론 도장 정리
 (function(){
-  const VERSION = '2026-05-27-animation-bugfix-v8-soft-sparkle';
+  const VERSION = '2026-05-27-animation-bugfix-v9-stamp-sparkle-stable';
   if (window.__ANIMATION_BUGFIX__ === VERSION) return;
   window.__ANIMATION_BUGFIX__ = VERSION;
 
   let refreshTimer = null;
-  let lastIntroReplayAt = 0;
+  let lastIntroIndex = null;
 
   function addStyles(){
     const old = document.getElementById('animationBugfixStyles');
@@ -20,7 +20,7 @@
         body.shake-once{animation:none!important;transform:none!important;filter:none!important}
       }
 
-      /* 선택지 피드백 도장은 원본 스타일로 고정한다. */
+      /* 선택지 피드백 도장: 원본 크기 복구 + 쾅 찍히는 애니메이션 */
       .feedback .verdict-stamp{
         position:static!important;
         inset:auto!important;
@@ -31,12 +31,12 @@
         max-width:100%!important;
         margin:.9rem 0 0 auto!important;
         padding:.38rem .7rem .42rem!important;
-        border:3px double rgba(141,47,39,.82)!important;
+        border:3px double rgba(141,47,39,.86)!important;
         border-radius:.35rem!important;
         display:block!important;
         place-items:normal!important;
         color:var(--red)!important;
-        background:rgba(255,255,255,.28)!important;
+        background:rgba(255,255,255,.30)!important;
         font-family:"Noto Serif KR",serif!important;
         font-weight:900!important;
         font-size:inherit!important;
@@ -48,11 +48,11 @@
         box-shadow:0 6px 14px rgba(141,47,39,.12)!important;
         pointer-events:none!important;
         z-index:auto!important;
-        will-change:transform,opacity;
         backface-visibility:hidden;
         -webkit-backface-visibility:hidden;
         -webkit-font-smoothing:antialiased;
         text-rendering:geometricPrecision;
+        will-change:transform,opacity,box-shadow;
       }
       .feedback .verdict-stamp span{
         display:block!important;
@@ -74,17 +74,38 @@
         transform:rotate(-5deg) scale(1)!important;
         animation:none!important;
       }
-      .feedback.visible .verdict-stamp.stamp-replay{
-        animation:choiceStampHitSharp .52s cubic-bezier(.18,1.45,.28,1) both!important;
+      .feedback.visible .verdict-stamp.stamp-hit{
+        animation:choiceStampImpact .66s cubic-bezier(.15,1.55,.22,1) both!important;
       }
-      @keyframes choiceStampHitSharp{
-        0%{opacity:0;transform:rotate(-13deg) scale(1.72);filter:blur(1.2px)}
-        44%{opacity:1;transform:rotate(-5deg) scale(.82);filter:none}
-        68%{opacity:1;transform:rotate(-5deg) scale(1.09);filter:none}
-        100%{opacity:1;transform:rotate(-5deg) scale(1);filter:none}
+      @keyframes choiceStampImpact{
+        0%{
+          opacity:0;
+          transform:translateY(-18px) rotate(-16deg) scale(2.25);
+          filter:blur(2px);
+          box-shadow:0 0 0 rgba(141,47,39,0);
+        }
+        38%{
+          opacity:1;
+          transform:translateY(2px) rotate(-5deg) scale(.76);
+          filter:none;
+          box-shadow:inset 0 0 0 2px rgba(141,47,39,.34),0 0 0 8px rgba(141,47,39,.16),0 10px 22px rgba(141,47,39,.18);
+        }
+        55%{
+          transform:translateY(0) rotate(-5deg) scale(1.12);
+          box-shadow:inset 0 0 0 1px rgba(141,47,39,.3),0 0 0 2px rgba(141,47,39,.08),0 7px 16px rgba(141,47,39,.14);
+        }
+        74%{
+          transform:translateY(0) rotate(-5deg) scale(.96);
+        }
+        100%{
+          opacity:1;
+          transform:translateY(0) rotate(-5deg) scale(1);
+          filter:none;
+          box-shadow:0 6px 14px rgba(141,47,39,.12);
+        }
       }
 
-      /* 첫 슬라이드 전용: 글자별로 빛이 스치고 지나가는 샤라랑 효과 */
+      /* 첫 슬라이드: 글자는 고정, 빛만 한 글자씩 스쳐 지나감 */
       .intro-spark-title{
         text-shadow:none!important;
         filter:none!important;
@@ -92,39 +113,31 @@
       .intro-spark-title .intro-spark-letter{
         display:inline-block;
         opacity:1;
+        transform:none;
         filter:none;
-        transform:translateZ(0) scale(1);
         text-shadow:none;
-        will-change:filter,text-shadow,transform;
+        will-change:filter,text-shadow;
       }
       .intro-spark-title.sparkle-playing .intro-spark-letter{
-        animation:introLetterSparkle .92s cubic-bezier(.2,.7,.2,1) both;
+        animation:introSoftSparkle .82s ease-out both;
       }
-      @keyframes introLetterSparkle{
+      @keyframes introSoftSparkle{
         0%{
-          opacity:1;
-          transform:translateZ(0) scale(1);
           filter:none;
           text-shadow:none;
         }
-        28%{
-          opacity:1;
-          transform:translateY(-1px) scale(1.025);
-          filter:brightness(1.35);
+        26%{
+          filter:brightness(1.28);
           text-shadow:
-            0 0 8px rgba(245,234,210,.72),
-            0 0 18px rgba(201,154,58,.48),
-            0 0 30px rgba(201,154,58,.18);
+            0 0 7px rgba(245,234,210,.60),
+            0 0 15px rgba(201,154,58,.42),
+            0 0 24px rgba(201,154,58,.14);
         }
-        52%{
-          opacity:1;
-          transform:translateY(0) scale(1.005);
+        46%{
           filter:brightness(1.08);
-          text-shadow:0 0 7px rgba(201,154,58,.25);
+          text-shadow:0 0 6px rgba(201,154,58,.20);
         }
         100%{
-          opacity:1;
-          transform:translateZ(0) scale(1);
           filter:none;
           text-shadow:none;
         }
@@ -162,13 +175,13 @@
         filter:none!important;
         transform:translate3d(0,0,0) rotate(-7deg) scale(1)!important;
       }
-      .cinematic-verdict-stamp.stamp-replay-final{
-        animation:finalStampHitSharp .7s cubic-bezier(.18,1.42,.28,1) both!important;
+      .cinematic-verdict-stamp.final-stamp-hit{
+        animation:finalStampImpact .72s cubic-bezier(.15,1.45,.22,1) both!important;
       }
-      @keyframes finalStampHitSharp{
-        0%{opacity:0;transform:translate3d(0,-130px,0) rotate(-18deg) scale(1.75);filter:blur(2px)}
-        50%{opacity:1;transform:translate3d(0,10px,0) rotate(-7deg) scale(.9);filter:none}
-        72%{opacity:1;transform:translate3d(0,0,0) rotate(-7deg) scale(1.06);filter:none}
+      @keyframes finalStampImpact{
+        0%{opacity:0;transform:translate3d(0,-150px,0) rotate(-18deg) scale(1.8);filter:blur(2px)}
+        44%{opacity:1;transform:translate3d(0,8px,0) rotate(-7deg) scale(.82);filter:none}
+        66%{opacity:1;transform:translate3d(0,0,0) rotate(-7deg) scale(1.08);filter:none}
         100%{opacity:1;transform:translate3d(0,0,0) rotate(-7deg) scale(1);filter:none}
       }
     `;
@@ -180,27 +193,25 @@
   }
 
   function currentIndex(){
-    try{ if(typeof current === 'number') return current; }catch(e){}
-    return -1;
+    try{ return typeof current === 'number' ? current : -1; }catch(e){ return -1; }
   }
 
   function slideCount(){
-    try{ if(Array.isArray(slides)) return slides.length; }catch(e){}
-    return 0;
+    try{ return Array.isArray(slides) ? slides.length : 0; }catch(e){ return 0; }
   }
 
   function isIntroSlide(slide){
     if(!slide) return false;
-    const idx = currentIndex();
     const h1 = slide.querySelector('h1');
     const text = h1 ? h1.textContent.replace(/\s+/g,'') : '';
-    return idx === 0 || /역사는흑백이아니다/.test(text);
+    return currentIndex() === 0 || /역사는흑백이아니다/.test(text);
   }
 
-  function buildIntroSparkTitle(slide){
-    if(!isIntroSlide(slide)) return;
+  function ensureIntroTitle(slide){
+    if(!isIntroSlide(slide)) return null;
     const h1 = slide.querySelector('h1');
-    if(!h1) return;
+    if(!h1) return null;
+    if(h1.dataset.sparkleVersion === 'v9') return h1;
 
     const compact = h1.textContent.replace(/\s+/g,'');
     const lines = /역사는흑백이아니다/.test(compact)
@@ -209,114 +220,88 @@
 
     h1.innerHTML = '';
     h1.classList.add('intro-spark-title');
-    h1.dataset.animationBugfixSplit = 'spark-v8';
+    h1.dataset.sparkleVersion = 'v9';
+    h1.dataset.sparklePlayed = '';
 
-    let charIndex = 0;
+    let n = 0;
     lines.forEach((line, lineIndex) => {
       Array.from(line).forEach(ch => {
         const span = document.createElement('span');
         span.className = 'intro-spark-letter';
         span.textContent = ch;
-        span.style.animationDelay = (charIndex * 0.052) + 's';
+        span.style.animationDelay = (n * 0.06) + 's';
         h1.appendChild(span);
-        charIndex++;
+        n++;
       });
       if(lineIndex < lines.length - 1) h1.appendChild(document.createElement('br'));
     });
+    return h1;
   }
 
   function replayIntroSparkle(slide, force){
-    if(!isIntroSlide(slide)) return;
-    const h1 = slide.querySelector('h1');
+    const h1 = ensureIntroTitle(slide);
     if(!h1) return;
-
-    if(h1.dataset.animationBugfixSplit !== 'spark-v8' || !h1.querySelector('.intro-spark-letter')){
-      buildIntroSparkTitle(slide);
-    }
-
-    if(!force && h1.dataset.sparklePlayedOnce === '1') return;
-
-    const now = Date.now();
-    if(!force && now - lastIntroReplayAt < 1600) return;
-    lastIntroReplayAt = now;
-    h1.dataset.sparklePlayedOnce = '1';
+    if(!force && h1.dataset.sparklePlayed === '1') return;
+    h1.dataset.sparklePlayed = '1';
 
     h1.classList.remove('sparkle-playing');
     h1.querySelectorAll('.intro-spark-letter').forEach((span, i) => {
       span.style.animation = 'none';
-      span.style.animationDelay = (i * 0.052) + 's';
+      span.style.animationDelay = (i * 0.06) + 's';
       span.style.textShadow = 'none';
       span.style.filter = 'none';
-      span.style.transform = 'translateZ(0) scale(1)';
     });
     void h1.offsetWidth;
-    h1.querySelectorAll('.intro-spark-letter').forEach(span => {
-      span.style.animation = '';
-    });
+    h1.querySelectorAll('.intro-spark-letter').forEach(span => span.style.animation = '');
     h1.classList.add('sparkle-playing');
     setTimeout(() => {
       h1.classList.remove('sparkle-playing');
       h1.querySelectorAll('.intro-spark-letter').forEach(span => {
         span.style.textShadow = 'none';
         span.style.filter = 'none';
-        span.style.transform = 'translateZ(0) scale(1)';
       });
-    }, 1700);
+    }, 1600);
   }
 
   function isConclusionSlide(slide){
-    if(!slide || !slide.querySelector('.qmain')) return false;
-    const idx = currentIndex();
-    const count = slideCount();
-    return count > 0 && idx === count - 1;
+    return !!(slide && slide.querySelector('.qmain') && slideCount() > 0 && currentIndex() === slideCount() - 1);
   }
 
   function removeWrongConclusionStamp(slide){
-    if(!slide) return;
-    if(isConclusionSlide(slide)) return;
+    if(!slide || isConclusionSlide(slide)) return;
     slide.classList.remove('verdict-stage');
     Array.from(slide.children).forEach(el => {
-      if(el.classList && (el.classList.contains('cinematic-verdict-stamp') || el.classList.contains('verdict-stamp')) && !el.closest('.feedback')){
-        el.remove();
-      }
+      if(el.classList && (el.classList.contains('cinematic-verdict-stamp') || el.classList.contains('verdict-stamp')) && !el.closest('.feedback')) el.remove();
     });
   }
 
   function normalizeConclusionStamp(slide){
     if(!isConclusionSlide(slide)) return;
-    const stamp = Array.from(slide.children).find(el =>
-      el.classList && el.classList.contains('verdict-stamp') && !el.closest('.feedback')
-    );
+    const stamp = Array.from(slide.children).find(el => el.classList && el.classList.contains('verdict-stamp') && !el.closest('.feedback'));
     if(!stamp) return;
     stamp.classList.add('cinematic-verdict-stamp');
     if(!stamp.querySelector('span')) stamp.innerHTML = '<span>판결 완료</span>';
     else stamp.querySelector('span').textContent = '판결 완료';
     stamp.style.filter = 'none';
-
     if(!stamp.dataset.finalStampPlayed){
       stamp.dataset.finalStampPlayed = '1';
-      replayFinalStamp(stamp);
+      stamp.classList.remove('stamp-settled','final-stamp-hit');
+      void stamp.offsetWidth;
+      stamp.classList.add('final-stamp-hit');
+      setTimeout(() => {
+        stamp.classList.remove('final-stamp-hit');
+        stamp.classList.add('stamp-settled');
+      }, 780);
     }
   }
 
   function replayChoiceStamps(slide){
     if(!slide) return;
     slide.querySelectorAll('.feedback.visible .verdict-stamp').forEach(stamp => {
-      stamp.classList.remove('stamp-replay');
+      stamp.classList.remove('stamp-hit');
       void stamp.offsetWidth;
-      stamp.classList.add('stamp-replay');
+      stamp.classList.add('stamp-hit');
     });
-  }
-
-  function replayFinalStamp(stamp){
-    if(!stamp) return;
-    stamp.classList.remove('stamp-settled','stamp-replay-final');
-    void stamp.offsetWidth;
-    stamp.classList.add('stamp-replay-final');
-    setTimeout(() => {
-      stamp.classList.remove('stamp-replay-final');
-      stamp.classList.add('stamp-settled');
-    }, 760);
   }
 
   function refreshEffects(forceIntro){
@@ -326,15 +311,15 @@
     if(!slide) return;
     removeWrongConclusionStamp(slide);
     normalizeConclusionStamp(slide);
+
+    const idx = currentIndex();
     if(isIntroSlide(slide)){
-      buildIntroSparkTitle(slide);
-      if(forceIntro){
-        const h1 = slide.querySelector('h1');
-        if(h1) h1.dataset.sparklePlayedOnce = '';
-      }
-      replayIntroSparkle(slide, !!forceIntro);
+      const h1 = ensureIntroTitle(slide);
+      const enteredIntro = lastIntroIndex !== 0 || !!forceIntro;
+      if(forceIntro && h1) h1.dataset.sparklePlayed = '';
+      replayIntroSparkle(slide, enteredIntro);
     }
-    replayChoiceStamps(slide);
+    lastIntroIndex = idx;
   }
 
   function scheduleRefresh(delay, forceIntro){
@@ -344,15 +329,20 @@
 
   function wrapFunction(name){
     const original = window[name];
-    if(typeof original !== 'function' || original.__animationBugfixWrappedStable) return;
+    if(typeof original !== 'function' || original.__animationBugfixWrappedV9) return;
     function wrapped(){
+      const before = currentIndex();
       const result = original.apply(this, arguments);
-      const forceIntro = name === 'resetPresentation' || name === 'startTimeTravel' || name === 'goTo';
-      scheduleRefresh(60, forceIntro);
-      setTimeout(() => refreshEffects(forceIntro), 260);
+      let forceIntro = name === 'resetPresentation' || name === 'startTimeTravel';
+      if(name === 'goTo' || name === 'linkedGo'){
+        const target = typeof arguments[0] === 'number' ? arguments[0] : parseInt(arguments[0], 10);
+        if(target === 0 || before !== 0) forceIntro = true;
+      }
+      scheduleRefresh(70, forceIntro);
+      setTimeout(() => refreshEffects(forceIntro), 280);
       return result;
     }
-    wrapped.__animationBugfixWrappedStable = true;
+    wrapped.__animationBugfixWrappedV9 = true;
     window[name] = wrapped;
   }
 
@@ -363,22 +353,23 @@
   function boot(attempts){
     addStyles();
     hook();
-    refreshEffects(attempts === 10);
+    refreshEffects(attempts === 8);
     if(attempts > 0) setTimeout(() => boot(attempts - 1), 180);
   }
 
   document.addEventListener('click', event => {
     if(event.target.closest('.choice,[data-choice]')){
-      setTimeout(() => replayChoiceStamps(getActiveSlide()), 40);
-      setTimeout(() => replayChoiceStamps(getActiveSlide()), 140);
+      setTimeout(() => replayChoiceStamps(getActiveSlide()), 45);
+      setTimeout(() => replayChoiceStamps(getActiveSlide()), 150);
     }
     if(event.target.closest('button,a,.choice,[data-choice]')){
-      const maybeIntro = event.target.closest('button,a') && /초기화|처음|발표 시작/.test(event.target.closest('button,a').textContent || '');
-      scheduleRefresh(90, maybeIntro);
-      setTimeout(() => refreshEffects(maybeIntro), 320);
+      const button = event.target.closest('button,a');
+      const forceIntro = !!(button && /초기화|처음|1페이지|발표 시작/.test(button.textContent || ''));
+      scheduleRefresh(90, forceIntro);
+      setTimeout(() => refreshEffects(forceIntro), 320);
     }
   }, true);
 
-  boot(10);
-  console.debug('Animation bugfix stable loaded:', VERSION);
+  boot(8);
+  console.debug('Animation bugfix loaded:', VERSION);
 })();
