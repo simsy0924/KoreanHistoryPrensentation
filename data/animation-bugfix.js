@@ -1,6 +1,6 @@
 // 안정화 패치: 선택 도장 CSS 충돌 수정, 첫 슬라이드 글자별 샤라랑 재실행, 잘못된 결론 도장 제거, 도장 애니메이션 재시작
 (function(){
-  const VERSION = '2026-05-27-animation-bugfix-v7-title-sparkle';
+  const VERSION = '2026-05-27-animation-bugfix-v8-soft-sparkle';
   if (window.__ANIMATION_BUGFIX__ === VERSION) return;
   window.__ANIMATION_BUGFIX__ = VERSION;
 
@@ -84,7 +84,7 @@
         100%{opacity:1;transform:rotate(-5deg) scale(1);filter:none}
       }
 
-      /* 첫 슬라이드 전용: 글자별로 지나가는 샤라랑 효과. 끝난 뒤 전체 발광이 남지 않게 한다. */
+      /* 첫 슬라이드 전용: 글자별로 빛이 스치고 지나가는 샤라랑 효과 */
       .intro-spark-title{
         text-shadow:none!important;
         filter:none!important;
@@ -93,39 +93,38 @@
         display:inline-block;
         opacity:1;
         filter:none;
-        transform:translateZ(0);
+        transform:translateZ(0) scale(1);
         text-shadow:none;
-        will-change:transform,filter,text-shadow,opacity;
+        will-change:filter,text-shadow,transform;
       }
       .intro-spark-title.sparkle-playing .intro-spark-letter{
-        animation:introLetterSparkle 1.08s cubic-bezier(.2,.7,.2,1) both;
+        animation:introLetterSparkle .92s cubic-bezier(.2,.7,.2,1) both;
       }
       @keyframes introLetterSparkle{
         0%{
-          opacity:.42;
-          transform:translateY(8px) scale(.92);
-          filter:blur(5px) brightness(1.1);
+          opacity:1;
+          transform:translateZ(0) scale(1);
+          filter:none;
           text-shadow:none;
         }
-        34%{
+        28%{
           opacity:1;
-          transform:translateY(-2px) scale(1.05);
-          filter:blur(.4px) brightness(1.55);
+          transform:translateY(-1px) scale(1.025);
+          filter:brightness(1.35);
           text-shadow:
-            0 0 12px rgba(245,234,210,.95),
-            0 0 26px rgba(201,154,58,.68),
-            -1px 0 rgba(141,47,39,.45),
-            1px 0 rgba(241,199,110,.45);
+            0 0 8px rgba(245,234,210,.72),
+            0 0 18px rgba(201,154,58,.48),
+            0 0 30px rgba(201,154,58,.18);
         }
-        58%{
+        52%{
           opacity:1;
-          transform:translateY(0) scale(1);
-          filter:blur(0) brightness(1.08);
-          text-shadow:0 0 8px rgba(201,154,58,.28);
+          transform:translateY(0) scale(1.005);
+          filter:brightness(1.08);
+          text-shadow:0 0 7px rgba(201,154,58,.25);
         }
         100%{
           opacity:1;
-          transform:translateY(0) scale(1);
+          transform:translateZ(0) scale(1);
           filter:none;
           text-shadow:none;
         }
@@ -208,10 +207,9 @@
       ? ['역사는','흑백이','아니다']
       : (h1.textContent || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
 
-    // 기존 cinematic ink-letter가 남긴 text-shadow를 없애기 위해 첫 제목은 전용 span으로 재구성한다.
     h1.innerHTML = '';
     h1.classList.add('intro-spark-title');
-    h1.dataset.animationBugfixSplit = 'spark-v7';
+    h1.dataset.animationBugfixSplit = 'spark-v8';
 
     let charIndex = 0;
     lines.forEach((line, lineIndex) => {
@@ -219,7 +217,7 @@
         const span = document.createElement('span');
         span.className = 'intro-spark-letter';
         span.textContent = ch;
-        span.style.animationDelay = (charIndex * 0.045) + 's';
+        span.style.animationDelay = (charIndex * 0.052) + 's';
         h1.appendChild(span);
         charIndex++;
       });
@@ -232,20 +230,24 @@
     const h1 = slide.querySelector('h1');
     if(!h1) return;
 
-    const now = Date.now();
-    if(!force && now - lastIntroReplayAt < 350) return;
-    lastIntroReplayAt = now;
-
-    if(h1.dataset.animationBugfixSplit !== 'spark-v7' || !h1.querySelector('.intro-spark-letter')){
+    if(h1.dataset.animationBugfixSplit !== 'spark-v8' || !h1.querySelector('.intro-spark-letter')){
       buildIntroSparkTitle(slide);
     }
+
+    if(!force && h1.dataset.sparklePlayedOnce === '1') return;
+
+    const now = Date.now();
+    if(!force && now - lastIntroReplayAt < 1600) return;
+    lastIntroReplayAt = now;
+    h1.dataset.sparklePlayedOnce = '1';
 
     h1.classList.remove('sparkle-playing');
     h1.querySelectorAll('.intro-spark-letter').forEach((span, i) => {
       span.style.animation = 'none';
-      span.style.animationDelay = (i * 0.045) + 's';
+      span.style.animationDelay = (i * 0.052) + 's';
       span.style.textShadow = 'none';
       span.style.filter = 'none';
+      span.style.transform = 'translateZ(0) scale(1)';
     });
     void h1.offsetWidth;
     h1.querySelectorAll('.intro-spark-letter').forEach(span => {
@@ -257,8 +259,9 @@
       h1.querySelectorAll('.intro-spark-letter').forEach(span => {
         span.style.textShadow = 'none';
         span.style.filter = 'none';
+        span.style.transform = 'translateZ(0) scale(1)';
       });
-    }, 1900);
+    }, 1700);
   }
 
   function isConclusionSlide(slide){
@@ -325,6 +328,10 @@
     normalizeConclusionStamp(slide);
     if(isIntroSlide(slide)){
       buildIntroSparkTitle(slide);
+      if(forceIntro){
+        const h1 = slide.querySelector('h1');
+        if(h1) h1.dataset.sparklePlayedOnce = '';
+      }
       replayIntroSparkle(slide, !!forceIntro);
     }
     replayChoiceStamps(slide);
