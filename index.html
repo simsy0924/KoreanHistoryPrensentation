@@ -32,7 +32,7 @@
 <iframe id="presentationFrame" title="역사는 흑백이 아니다 발표 사이트"></iframe>
 <script>
 (function(){
-  const VERSION='20260527-animation-bugfix-v1';
+  const VERSION='20260527-final-polish-v1';
   const ORIGINAL_INDEX_URL='https://raw.githubusercontent.com/simsy0924/KoreanHistoryPrensentation/22a5820d6640df3ba65c580c65154be8989caa48/index.html?raw='+VERSION;
   const frame=document.getElementById('presentationFrame');
   const loader=document.getElementById('loader');
@@ -94,6 +94,8 @@
       await injectScript(doc,'./data/cinematic-effects.js');
       setMessage('애니메이션 오류 수정 중');
       await injectScript(doc,'./data/animation-bugfix.js');
+      setMessage('최종 연출 다듬는 중');
+      await injectScript(doc,'./data/animation-final-polish.js');
       setMessage('연결 완료');
       setTimeout(()=>loader.classList.add('hidden'),650);
     }catch(error){
