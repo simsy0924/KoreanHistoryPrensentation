@@ -1,6 +1,6 @@
 // 시네마틱 영화적 애니메이션: 먹 웨이브 전환, 인트로 글리치, 결론 도장, 황금 입자
 (function(){
-  const VERSION = '2026-05-26-cinematic-v5';
+  const VERSION = '2026-05-26-cinematic-v6';
   if (window.__CINEMATIC_EFFECTS__ === VERSION) return;
   window.__CINEMATIC_EFFECTS__ = VERSION;
 
@@ -628,14 +628,6 @@
     if(isChapterChange && !isMobile){
       setTimeout(() => playGlitchPulse(document.querySelector('.slide.active')), 50);
     }
-    setTimeout(() => {
-      try {
-        if(typeof current === 'number'){
-          if(current === 0) enhanceIntroSlide();
-          else if(Array.isArray(slides) && current === slides.length - 1) enhanceConclusionSlide();
-        }
-      } catch(e) {}
-    }, 60);
   }
 
   function hookNavigation(){
@@ -688,27 +680,8 @@
     if(typeof oldRender !== 'function') return;
 
     window.render = function(){
-      const result = oldRender.apply(this, arguments);
-      setTimeout(() => {
-        try{
-          if(typeof current !== 'number' || typeof slides === 'undefined') return;
-          if(current === 0){
-            enhanceIntroSlide();
-          } else if(current === slides.length - 1){
-            enhanceConclusionSlide();
-          }
-        }catch(e){ console.debug('enhance error', e); }
-      }, 60);
-      return result;
+      return oldRender.apply(this, arguments);
     };
-
-    setTimeout(() => {
-      try{
-        if(typeof current === 'number' && current === 0){
-          enhanceIntroSlide();
-        }
-      }catch(e){}
-    }, 80);
   }
 
   // ============================================
