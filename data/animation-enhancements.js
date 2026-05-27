@@ -1,6 +1,6 @@
 // 발표 애니메이션 강화: 카드 등장, 버튼 반응성, 효과음
 (function(){
-  const VERSION = '2026-05-26-animation-enhancements-v1';
+  const VERSION = '2026-05-27-animation-enhancements-v2';
   if (window.__ANIMATION_ENHANCEMENTS__ === VERSION) return;
   window.__ANIMATION_ENHANCEMENTS__ = VERSION;
 
@@ -137,12 +137,18 @@
       choiceBtn.style.animation = 'clickBounce 0.4s cubic-bezier(0.34,1.56,0.64,1)';
       choiceBtn.classList.add('selected');
 
-      // 다른 버튼들 fade out
-      const allChoices = document.querySelectorAll('.choice, [data-choice]');
-      allChoices.forEach(btn => {
+      // 같은 질문 블록 내부에서 선택 상태만 갱신
+      // (다른 선택지를 비활성화하지 않아 재선택 가능)
+      const questionRoot = choiceBtn.closest('[data-question]') || choiceBtn.parentElement;
+      const scopedChoices = questionRoot
+        ? questionRoot.querySelectorAll('.choice, [data-choice]')
+        : document.querySelectorAll('.choice, [data-choice]');
+
+      scopedChoices.forEach(btn => {
         if (btn !== choiceBtn) {
-          btn.style.animation = 'fadeOut 0.5s ease-out forwards';
-          btn.style.pointerEvents = 'none';
+          btn.style.animation = '';
+          btn.style.pointerEvents = 'auto';
+          btn.classList.remove('selected');
         }
       });
 
