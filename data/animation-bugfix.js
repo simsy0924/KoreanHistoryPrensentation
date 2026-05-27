@@ -1,10 +1,12 @@
-// 애니메이션 복구 패치: 슬라이드 전환 후 효과 재실행, 선택 도장/결론 도장 CSS 충돌 분리
+// 애니메이션 복구 패치: 슬라이드 전환 후 효과 재실행, 선택 도장/결론 도장 CSS 충돌 분리, 먹물 전환 보정
 (function(){
-  const VERSION = '2026-05-27-animation-bugfix-v2';
+  const VERSION = '2026-05-27-animation-bugfix-v3';
   if (window.__ANIMATION_BUGFIX__ === VERSION) return;
   window.__ANIMATION_BUGFIX__ = VERSION;
 
   let refreshQueued = false;
+  let inkPatchRunning = false;
+  let lastInkPatchAt = 0;
 
   function addStyles(){
     const old = document.getElementById('animationBugfixStyles');
@@ -127,6 +129,56 @@
       .slide.active.fx-replay .source-summary article{
         animation-play-state:running;
       }
+
+      /* 태블릿에서도 확실히 보이는 먹물 전환 보정 */
+      #inkPatchSweep{
+        position:fixed;
+        inset:0;
+        z-index:10050;
+        pointer-events:none;
+        opacity:0;
+        overflow:hidden;
+        contain:layout paint;
+      }
+      #inkPatchSweep.active{opacity:1}
+      #inkPatchSweep .ink-patch-core{
+        position:absolute;
+        top:-18vh;
+        bottom:-18vh;
+        left:-45vw;
+        width:72vw;
+        background:
+          radial-gradient(circle at 18% 18%,rgba(245,234,210,.26) 0 2.4vmin,transparent 2.7vmin),
+          radial-gradient(circle at 78% 35%,rgba(245,234,210,.18) 0 1.8vmin,transparent 2.2vmin),
+          radial-gradient(circle at 56% 82%,rgba(245,234,210,.16) 0 2vmin,transparent 2.5vmin),
+          linear-gradient(90deg,rgba(7,6,4,0),rgba(7,6,4,.96) 18%,#050403 54%,rgba(20,14,9,.96) 74%,rgba(245,234,210,.22) 85%,rgba(7,6,4,0));
+        filter:drop-shadow(0 0 18px rgba(245,234,210,.18));
+        border-radius:45% 55% 52% 48%;
+        transform:translateX(-25vw) skewX(-10deg) scaleX(1.15);
+        opacity:.98;
+      }
+      #inkPatchSweep.active .ink-patch-core{
+        animation:inkPatchCoreSweep .9s cubic-bezier(.4,0,.2,1) both;
+      }
+      #inkPatchSweep .ink-patch-flash{
+        position:absolute;
+        inset:0;
+        background:radial-gradient(circle at center,rgba(245,234,210,.12),transparent 42%),rgba(7,6,4,.18);
+        opacity:0;
+      }
+      #inkPatchSweep.active .ink-patch-flash{
+        animation:inkPatchFlash .9s ease both;
+      }
+      @keyframes inkPatchCoreSweep{
+        0%{transform:translateX(-65vw) skewX(-13deg) scaleX(1.2);opacity:0}
+        14%{opacity:1}
+        52%{transform:translateX(58vw) skewX(-6deg) scaleX(1.55);opacity:1}
+        100%{transform:translateX(145vw) skewX(-13deg) scaleX(1.05);opacity:0}
+      }
+      @keyframes inkPatchFlash{
+        0%,100%{opacity:0}
+        36%,62%{opacity:1}
+      }
     `;
     document.head.appendChild(style);
   }
@@ -190,9 +242,14 @@
     if(!activeSlide || !activeSlide.querySelector('.qmain')) return false;
     const idx = currentIndex();
     const count = slideCount();
-    if(count > 0 && idx >= count - 2) return true;
+    if(count <= 0 || idx < 0) return false;
+
+    // 결론 도장은 발표 끝 슬라이드에서만 허용한다.
+    // 2페이지 같은 핵심 문장 슬라이드의 '역사는' 문구를 결론으로 오판하지 않도록 엄격하게 제한한다.
+    if(idx < count - 1) return false;
+
     const text = activeSlide.textContent || '';
-    return /결론|판결|判|현재|흑백이 아니다|역사는/.test(text);
+    return /결론|마지막|최종|현재로 돌아|흑백이 아니다|오늘의 질문|判/.test(text) || idx === count - 1;
   }
 
   function prepareVerdictLines(activeSlide){
@@ -223,6 +280,15 @@
     return direct || null;
   }
 
+  function removeWrongCinematicStamp(activeSlide){
+    if(!activeSlide) return;
+    if(isLikelyConclusion(activeSlide)) return;
+    activeSlide.classList.remove('verdict-stage');
+    activeSlide.querySelectorAll(':scope > .cinematic-verdict-stamp, :scope > .verdict-stamp').forEach(stamp => {
+      if(!stamp.closest('.feedback')) stamp.remove();
+    });
+  }
+
   function settleStamp(stamp){
     if(!stamp || !stamp.classList.contains('cinematic-verdict-stamp')) return;
     stamp.classList.add('stamp-settled');
@@ -240,7 +306,7 @@
   }
 
   function dropVerdictStamp(activeSlide){
-    if(!activeSlide) return;
+    if(!isLikelyConclusion(activeSlide)) return;
     let stamp = directCinematicStamp(activeSlide);
     if(!stamp){
       stamp = document.createElement('div');
@@ -263,6 +329,7 @@
   }
 
   function enhanceConclusion(activeSlide){
+    removeWrongCinematicStamp(activeSlide);
     if(!isLikelyConclusion(activeSlide)) return;
     activeSlide.classList.add('verdict-stage');
 
@@ -286,9 +353,37 @@
     activeSlide.classList.add('fx-replay');
   }
 
+  function ensureInkPatchOverlay(){
+    let overlay = document.getElementById('inkPatchSweep');
+    if(overlay) return overlay;
+    overlay = document.createElement('div');
+    overlay.id = 'inkPatchSweep';
+    overlay.setAttribute('aria-hidden','true');
+    overlay.innerHTML = '<div class="ink-patch-flash"></div><div class="ink-patch-core"></div>';
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+
+  function playInkPatch(){
+    const now = Date.now();
+    if(inkPatchRunning || now - lastInkPatchAt < 650) return;
+    inkPatchRunning = true;
+    lastInkPatchAt = now;
+    addStyles();
+    const overlay = ensureInkPatchOverlay();
+    overlay.classList.remove('active');
+    void overlay.offsetWidth;
+    overlay.classList.add('active');
+    setTimeout(() => {
+      overlay.classList.remove('active');
+      inkPatchRunning = false;
+    }, 980);
+  }
+
   function refreshEffects(){
     refreshQueued = false;
     addStyles();
+    ensureInkPatchOverlay();
     const activeSlide = getActiveSlide();
     if(!activeSlide) return;
     replayEntranceAnimations(activeSlide);
@@ -311,6 +406,7 @@
     const original = window[name];
     if(typeof original !== 'function' || original.__animationBugfixWrapped) return;
     function wrapped(){
+      playInkPatch();
       const result = original.apply(this, arguments);
       afterSlideChange();
       return result;
@@ -320,14 +416,25 @@
   }
 
   function hookRenderAndNavigation(){
-    wrapFunction('render');
     wrapFunction('goTo');
     wrapFunction('linkedGo');
     wrapFunction('nextSlide');
+
+    const originalRender = window.render;
+    if(typeof originalRender === 'function' && !originalRender.__animationBugfixWrapped){
+      function wrappedRender(){
+        const result = originalRender.apply(this, arguments);
+        afterSlideChange();
+        return result;
+      }
+      wrappedRender.__animationBugfixWrapped = true;
+      window.render = wrappedRender;
+    }
   }
 
   function boot(attempts){
     addStyles();
+    ensureInkPatchOverlay();
     hookRenderAndNavigation();
     refreshEffects();
     if(attempts > 0){
@@ -336,6 +443,8 @@
   }
 
   document.addEventListener('click', event => {
+    const navButton = event.target.closest('button.main,.nav-actions button,.small,.ghost');
+    if(navButton) playInkPatch();
     if(event.target.closest('button,a,.choice,[data-choice]')) afterSlideChange();
   }, true);
 
