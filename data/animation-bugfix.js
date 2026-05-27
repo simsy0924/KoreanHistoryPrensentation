@@ -1,10 +1,11 @@
-// 안정화 패치: 선택 도장 CSS 충돌 수정, 첫 슬라이드 반짝임 재실행, 잘못된 결론 도장 제거
+// 안정화 패치: 선택 도장 CSS 충돌 수정, 첫 슬라이드 글자별 샤라랑 재실행, 잘못된 결론 도장 제거, 도장 애니메이션 재시작
 (function(){
-  const VERSION = '2026-05-27-animation-bugfix-v5-stable';
+  const VERSION = '2026-05-27-animation-bugfix-v7-title-sparkle';
   if (window.__ANIMATION_BUGFIX__ === VERSION) return;
   window.__ANIMATION_BUGFIX__ = VERSION;
 
   let refreshTimer = null;
+  let lastIntroReplayAt = 0;
 
   function addStyles(){
     const old = document.getElementById('animationBugfixStyles');
@@ -69,18 +70,65 @@
         white-space:normal!important;
       }
       .feedback.visible .verdict-stamp{
-        animation:choiceStampHitSharp .42s cubic-bezier(.2,1.35,.3,1) both!important;
+        opacity:1!important;
+        transform:rotate(-5deg) scale(1)!important;
+        animation:none!important;
+      }
+      .feedback.visible .verdict-stamp.stamp-replay{
+        animation:choiceStampHitSharp .52s cubic-bezier(.18,1.45,.28,1) both!important;
       }
       @keyframes choiceStampHitSharp{
-        0%{opacity:0;transform:rotate(-12deg) scale(1.45);filter:none}
-        55%{opacity:1;transform:rotate(-5deg) scale(.88);filter:none}
-        72%{opacity:1;transform:rotate(-5deg) scale(1.04);filter:none}
+        0%{opacity:0;transform:rotate(-13deg) scale(1.72);filter:blur(1.2px)}
+        44%{opacity:1;transform:rotate(-5deg) scale(.82);filter:none}
+        68%{opacity:1;transform:rotate(-5deg) scale(1.09);filter:none}
         100%{opacity:1;transform:rotate(-5deg) scale(1);filter:none}
       }
 
-      /* 첫 슬라이드 제목 반짝임 재생용 */
-      .intro-title-replayed .ink-letter{
-        animation:inkBleedIn 1.15s cubic-bezier(.2,.7,.2,1) both!important;
+      /* 첫 슬라이드 전용: 글자별로 지나가는 샤라랑 효과. 끝난 뒤 전체 발광이 남지 않게 한다. */
+      .intro-spark-title{
+        text-shadow:none!important;
+        filter:none!important;
+      }
+      .intro-spark-title .intro-spark-letter{
+        display:inline-block;
+        opacity:1;
+        filter:none;
+        transform:translateZ(0);
+        text-shadow:none;
+        will-change:transform,filter,text-shadow,opacity;
+      }
+      .intro-spark-title.sparkle-playing .intro-spark-letter{
+        animation:introLetterSparkle 1.08s cubic-bezier(.2,.7,.2,1) both;
+      }
+      @keyframes introLetterSparkle{
+        0%{
+          opacity:.42;
+          transform:translateY(8px) scale(.92);
+          filter:blur(5px) brightness(1.1);
+          text-shadow:none;
+        }
+        34%{
+          opacity:1;
+          transform:translateY(-2px) scale(1.05);
+          filter:blur(.4px) brightness(1.55);
+          text-shadow:
+            0 0 12px rgba(245,234,210,.95),
+            0 0 26px rgba(201,154,58,.68),
+            -1px 0 rgba(141,47,39,.45),
+            1px 0 rgba(241,199,110,.45);
+        }
+        58%{
+          opacity:1;
+          transform:translateY(0) scale(1);
+          filter:blur(0) brightness(1.08);
+          text-shadow:0 0 8px rgba(201,154,58,.28);
+        }
+        100%{
+          opacity:1;
+          transform:translateY(0) scale(1);
+          filter:none;
+          text-shadow:none;
+        }
       }
 
       /* 마지막 결론 도장 */
@@ -115,6 +163,15 @@
         filter:none!important;
         transform:translate3d(0,0,0) rotate(-7deg) scale(1)!important;
       }
+      .cinematic-verdict-stamp.stamp-replay-final{
+        animation:finalStampHitSharp .7s cubic-bezier(.18,1.42,.28,1) both!important;
+      }
+      @keyframes finalStampHitSharp{
+        0%{opacity:0;transform:translate3d(0,-130px,0) rotate(-18deg) scale(1.75);filter:blur(2px)}
+        50%{opacity:1;transform:translate3d(0,10px,0) rotate(-7deg) scale(.9);filter:none}
+        72%{opacity:1;transform:translate3d(0,0,0) rotate(-7deg) scale(1.06);filter:none}
+        100%{opacity:1;transform:translate3d(0,0,0) rotate(-7deg) scale(1);filter:none}
+      }
     `;
     document.head.appendChild(style);
   }
@@ -141,50 +198,67 @@
     return idx === 0 || /역사는흑백이아니다/.test(text);
   }
 
-  function splitIntroTitle(slide){
+  function buildIntroSparkTitle(slide){
     if(!isIntroSlide(slide)) return;
     const h1 = slide.querySelector('h1');
     if(!h1) return;
 
-    if(!h1.dataset.animationBugfixSplit){
-      const originalHTML = h1.innerHTML;
-      const tmp = document.createElement('div');
-      tmp.innerHTML = originalHTML;
-      h1.innerHTML = '';
+    const compact = h1.textContent.replace(/\s+/g,'');
+    const lines = /역사는흑백이아니다/.test(compact)
+      ? ['역사는','흑백이','아니다']
+      : (h1.textContent || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
 
-      let charIndex = 0;
-      function processNode(node, target){
-        if(node.nodeType === Node.TEXT_NODE){
-          Array.from(node.textContent || '').forEach(ch => {
-            if(ch === ' '){
-              target.appendChild(document.createTextNode(' '));
-              return;
-            }
-            const span = document.createElement('span');
-            span.className = 'ink-letter';
-            span.textContent = ch;
-            span.style.animationDelay = (charIndex * 0.065) + 's';
-            target.appendChild(span);
-            charIndex++;
-          });
-        }else if(node.nodeType === Node.ELEMENT_NODE){
-          if(node.tagName === 'BR'){
-            target.appendChild(document.createElement('br'));
-          }else{
-            const clone = node.cloneNode(false);
-            Array.from(node.childNodes).forEach(child => processNode(child, clone));
-            target.appendChild(clone);
-          }
-        }
-      }
-      Array.from(tmp.childNodes).forEach(child => processNode(child, h1));
-      h1.dataset.animationBugfixSplit = '1';
+    // 기존 cinematic ink-letter가 남긴 text-shadow를 없애기 위해 첫 제목은 전용 span으로 재구성한다.
+    h1.innerHTML = '';
+    h1.classList.add('intro-spark-title');
+    h1.dataset.animationBugfixSplit = 'spark-v7';
+
+    let charIndex = 0;
+    lines.forEach((line, lineIndex) => {
+      Array.from(line).forEach(ch => {
+        const span = document.createElement('span');
+        span.className = 'intro-spark-letter';
+        span.textContent = ch;
+        span.style.animationDelay = (charIndex * 0.045) + 's';
+        h1.appendChild(span);
+        charIndex++;
+      });
+      if(lineIndex < lines.length - 1) h1.appendChild(document.createElement('br'));
+    });
+  }
+
+  function replayIntroSparkle(slide, force){
+    if(!isIntroSlide(slide)) return;
+    const h1 = slide.querySelector('h1');
+    if(!h1) return;
+
+    const now = Date.now();
+    if(!force && now - lastIntroReplayAt < 350) return;
+    lastIntroReplayAt = now;
+
+    if(h1.dataset.animationBugfixSplit !== 'spark-v7' || !h1.querySelector('.intro-spark-letter')){
+      buildIntroSparkTitle(slide);
     }
 
-    // 초기화 후 돌아왔을 때도 반짝임을 다시 재생한다.
-    h1.classList.remove('intro-title-replayed');
+    h1.classList.remove('sparkle-playing');
+    h1.querySelectorAll('.intro-spark-letter').forEach((span, i) => {
+      span.style.animation = 'none';
+      span.style.animationDelay = (i * 0.045) + 's';
+      span.style.textShadow = 'none';
+      span.style.filter = 'none';
+    });
     void h1.offsetWidth;
-    h1.classList.add('intro-title-replayed');
+    h1.querySelectorAll('.intro-spark-letter').forEach(span => {
+      span.style.animation = '';
+    });
+    h1.classList.add('sparkle-playing');
+    setTimeout(() => {
+      h1.classList.remove('sparkle-playing');
+      h1.querySelectorAll('.intro-spark-letter').forEach(span => {
+        span.style.textShadow = 'none';
+        span.style.filter = 'none';
+      });
+    }, 1900);
   }
 
   function isConclusionSlide(slide){
@@ -215,21 +289,50 @@
     if(!stamp.querySelector('span')) stamp.innerHTML = '<span>판결 완료</span>';
     else stamp.querySelector('span').textContent = '판결 완료';
     stamp.style.filter = 'none';
+
+    if(!stamp.dataset.finalStampPlayed){
+      stamp.dataset.finalStampPlayed = '1';
+      replayFinalStamp(stamp);
+    }
   }
 
-  function refreshEffects(){
+  function replayChoiceStamps(slide){
+    if(!slide) return;
+    slide.querySelectorAll('.feedback.visible .verdict-stamp').forEach(stamp => {
+      stamp.classList.remove('stamp-replay');
+      void stamp.offsetWidth;
+      stamp.classList.add('stamp-replay');
+    });
+  }
+
+  function replayFinalStamp(stamp){
+    if(!stamp) return;
+    stamp.classList.remove('stamp-settled','stamp-replay-final');
+    void stamp.offsetWidth;
+    stamp.classList.add('stamp-replay-final');
+    setTimeout(() => {
+      stamp.classList.remove('stamp-replay-final');
+      stamp.classList.add('stamp-settled');
+    }, 760);
+  }
+
+  function refreshEffects(forceIntro){
     refreshTimer = null;
     addStyles();
     const slide = getActiveSlide();
     if(!slide) return;
     removeWrongConclusionStamp(slide);
     normalizeConclusionStamp(slide);
-    splitIntroTitle(slide);
+    if(isIntroSlide(slide)){
+      buildIntroSparkTitle(slide);
+      replayIntroSparkle(slide, !!forceIntro);
+    }
+    replayChoiceStamps(slide);
   }
 
-  function scheduleRefresh(delay){
+  function scheduleRefresh(delay, forceIntro){
     if(refreshTimer) clearTimeout(refreshTimer);
-    refreshTimer = setTimeout(refreshEffects, delay || 80);
+    refreshTimer = setTimeout(() => refreshEffects(forceIntro), delay || 80);
   }
 
   function wrapFunction(name){
@@ -237,8 +340,9 @@
     if(typeof original !== 'function' || original.__animationBugfixWrappedStable) return;
     function wrapped(){
       const result = original.apply(this, arguments);
-      scheduleRefresh(60);
-      setTimeout(refreshEffects, 260);
+      const forceIntro = name === 'resetPresentation' || name === 'startTimeTravel' || name === 'goTo';
+      scheduleRefresh(60, forceIntro);
+      setTimeout(() => refreshEffects(forceIntro), 260);
       return result;
     }
     wrapped.__animationBugfixWrappedStable = true;
@@ -252,14 +356,19 @@
   function boot(attempts){
     addStyles();
     hook();
-    refreshEffects();
+    refreshEffects(attempts === 10);
     if(attempts > 0) setTimeout(() => boot(attempts - 1), 180);
   }
 
   document.addEventListener('click', event => {
+    if(event.target.closest('.choice,[data-choice]')){
+      setTimeout(() => replayChoiceStamps(getActiveSlide()), 40);
+      setTimeout(() => replayChoiceStamps(getActiveSlide()), 140);
+    }
     if(event.target.closest('button,a,.choice,[data-choice]')){
-      scheduleRefresh(90);
-      setTimeout(refreshEffects, 320);
+      const maybeIntro = event.target.closest('button,a') && /초기화|처음|발표 시작/.test(event.target.closest('button,a').textContent || '');
+      scheduleRefresh(90, maybeIntro);
+      setTimeout(() => refreshEffects(maybeIntro), 320);
     }
   }, true);
 
