@@ -1,41 +1,113 @@
-// 애니메이션 복구 패치: 슬라이드 전환 후 효과 재실행, 결론 도장 선명도 고정
+// 애니메이션 복구 패치: 슬라이드 전환 후 효과 재실행, 선택 도장/결론 도장 CSS 충돌 분리
 (function(){
-  const VERSION = '2026-05-27-animation-bugfix-v1';
+  const VERSION = '2026-05-27-animation-bugfix-v2';
   if (window.__ANIMATION_BUGFIX__ === VERSION) return;
   window.__ANIMATION_BUGFIX__ = VERSION;
 
+  let refreshQueued = false;
+
   function addStyles(){
-    if(document.getElementById('animationBugfixStyles')) return;
+    const old = document.getElementById('animationBugfixStyles');
+    if(old && old.dataset.version === VERSION) return;
+    if(old) old.remove();
+
     const style = document.createElement('style');
     style.id = 'animationBugfixStyles';
+    style.dataset.version = VERSION;
     style.textContent = `
       /* 태블릿/모바일 Safari에서 도장 직후 전체 화면이 흐려지는 현상 방지 */
       @media (pointer:coarse){
         body.shake-once{animation:none!important;transform:none!important;filter:none!important}
       }
 
-      .verdict-stamp,
-      .verdict-stamp *{
+      /* 원본 선택 판결 도장 복구
+         cinematic-effects.js의 전역 .verdict-stamp 스타일이 선택 도장까지 덮어써서
+         화면 오른쪽에 큰 흐린 도장처럼 보이던 문제를 여기서 되돌린다. */
+      .feedback .verdict-stamp{
+        position:static!important;
+        inset:auto!important;
+        right:auto!important;
+        bottom:auto!important;
+        width:max-content!important;
+        height:auto!important;
+        max-width:100%!important;
+        margin:.9rem 0 0 auto!important;
+        padding:.38rem .7rem .42rem!important;
+        border:3px double rgba(141,47,39,.82)!important;
+        border-radius:.35rem!important;
+        display:block!important;
+        place-items:normal!important;
+        color:var(--red)!important;
+        background:rgba(255,255,255,.28)!important;
+        font-family:"Noto Serif KR",serif!important;
+        font-weight:900!important;
+        font-size:inherit!important;
+        letter-spacing:-.04em!important;
+        opacity:0;
+        transform:rotate(-5deg) scale(.92)!important;
+        transform-origin:center center!important;
+        filter:none!important;
+        box-shadow:0 6px 14px rgba(141,47,39,.12)!important;
+        pointer-events:none!important;
+        z-index:auto!important;
+        will-change:transform,opacity;
+        backface-visibility:hidden;
+        -webkit-backface-visibility:hidden;
+        -webkit-font-smoothing:antialiased;
+        text-rendering:geometricPrecision;
+      }
+
+      .feedback .verdict-stamp span{
+        display:block!important;
+        font-size:1.12rem!important;
+        line-height:1!important;
+        filter:none!important;
+        transform:none!important;
+      }
+
+      .feedback .verdict-stamp small{
+        display:block!important;
+        margin-top:.18rem!important;
+        font-family:"Noto Sans KR",sans-serif!important;
+        font-size:.74rem!important;
+        letter-spacing:-.03em!important;
+        white-space:normal!important;
+      }
+
+      .feedback.visible .verdict-stamp{
+        animation:choiceStampHitSharp .42s cubic-bezier(.2,1.35,.3,1) both!important;
+      }
+
+      @keyframes choiceStampHitSharp{
+        0%{opacity:0;transform:rotate(-12deg) scale(1.45);filter:none}
+        55%{opacity:1;transform:rotate(-5deg) scale(.88);filter:none}
+        72%{opacity:1;transform:rotate(-5deg) scale(1.04);filter:none}
+        100%{opacity:1;transform:rotate(-5deg) scale(1);filter:none}
+      }
+
+      /* 결론 클라이맥스 도장은 별도 클래스로만 보정한다. */
+      .cinematic-verdict-stamp,
+      .cinematic-verdict-stamp *{
         -webkit-font-smoothing:antialiased;
         text-rendering:geometricPrecision;
         backface-visibility:hidden;
         -webkit-backface-visibility:hidden;
       }
 
-      .verdict-stamp{
+      .cinematic-verdict-stamp{
         transform-origin:center center;
         will-change:transform,opacity;
       }
 
-      .verdict-stamp.stamp-settled,
-      .verdict-stamp.drop.stamp-settled{
+      .cinematic-verdict-stamp.stamp-settled,
+      .cinematic-verdict-stamp.drop.stamp-settled{
         opacity:1!important;
         filter:none!important;
         transform:translate3d(0,0,0) rotate(-7deg) scale(1)!important;
         animation:stampSettleSharp 1.2s ease-out forwards!important;
       }
 
-      .verdict-stamp.stamp-settled span{
+      .cinematic-verdict-stamp.stamp-settled span{
         filter:none!important;
         transform:translateZ(0);
       }
@@ -142,14 +214,23 @@
     return qmain.querySelectorAll('.qline').length;
   }
 
+  function directCinematicStamp(activeSlide){
+    if(!activeSlide) return null;
+    const direct = Array.from(activeSlide.children).find(el =>
+      el.classList && el.classList.contains('verdict-stamp') && !el.closest('.feedback')
+    );
+    if(direct) direct.classList.add('cinematic-verdict-stamp');
+    return direct || null;
+  }
+
   function settleStamp(stamp){
-    if(!stamp) return;
+    if(!stamp || !stamp.classList.contains('cinematic-verdict-stamp')) return;
     stamp.classList.add('stamp-settled');
     stamp.style.filter = 'none';
   }
 
   function attachStampSharpener(stamp){
-    if(!stamp || stamp.dataset.animationBugfixSharpener) return;
+    if(!stamp || !stamp.classList.contains('cinematic-verdict-stamp') || stamp.dataset.animationBugfixSharpener) return;
     stamp.dataset.animationBugfixSharpener = '1';
     stamp.addEventListener('animationend', event => {
       if(event.animationName === 'stampDrop' || event.animationName === 'stampSettle'){
@@ -160,10 +241,10 @@
 
   function dropVerdictStamp(activeSlide){
     if(!activeSlide) return;
-    let stamp = activeSlide.querySelector('.verdict-stamp');
+    let stamp = directCinematicStamp(activeSlide);
     if(!stamp){
       stamp = document.createElement('div');
-      stamp.className = 'verdict-stamp';
+      stamp.className = 'verdict-stamp cinematic-verdict-stamp';
       stamp.innerHTML = '<span>判</span>';
       activeSlide.appendChild(stamp);
     }
@@ -186,7 +267,7 @@
     activeSlide.classList.add('verdict-stage');
 
     const lineCount = prepareVerdictLines(activeSlide);
-    const existingStamp = activeSlide.querySelector('.verdict-stamp');
+    const existingStamp = directCinematicStamp(activeSlide);
     if(existingStamp){
       attachStampSharpener(existingStamp);
       setTimeout(() => settleStamp(existingStamp), 720);
@@ -206,21 +287,24 @@
   }
 
   function refreshEffects(){
+    refreshQueued = false;
     addStyles();
     const activeSlide = getActiveSlide();
     if(!activeSlide) return;
     replayEntranceAnimations(activeSlide);
     splitIntroTitle(activeSlide);
     enhanceConclusion(activeSlide);
-    activeSlide.querySelectorAll('.verdict-stamp').forEach(stamp => {
+    activeSlide.querySelectorAll(':scope > .cinematic-verdict-stamp').forEach(stamp => {
       attachStampSharpener(stamp);
       if(stamp.classList.contains('drop')) setTimeout(() => settleStamp(stamp), 720);
     });
   }
 
   function afterSlideChange(){
-    setTimeout(refreshEffects, 30);
-    setTimeout(refreshEffects, 180);
+    if(refreshQueued) return;
+    refreshQueued = true;
+    setTimeout(refreshEffects, 40);
+    setTimeout(refreshEffects, 210);
   }
 
   function wrapFunction(name){
@@ -256,7 +340,7 @@
   }, true);
 
   const observer = new MutationObserver(() => afterSlideChange());
-  observer.observe(document.body, {subtree:true, childList:true, attributes:true, attributeFilter:['class','style']});
+  observer.observe(document.body, {subtree:true, childList:true});
 
   boot(20);
   console.debug('Animation bugfix loaded:', VERSION);
