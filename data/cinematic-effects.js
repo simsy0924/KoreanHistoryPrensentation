@@ -630,6 +630,22 @@
     }
   }
 
+  let isInkTransitionRunning = false;
+
+  function runCinematicNavigate(fallback){
+    if(prefersReducedMotion || isInkTransitionRunning){
+      fallback();
+      return;
+    }
+
+    isInkTransitionRunning = true;
+    playInkSweep(() => fallback(), isMobile ? 520 : 920)
+      .catch(() => fallback())
+      .finally(() => {
+        isInkTransitionRunning = false;
+      });
+  }
+
   function hookNavigation(){
     if(window.__CINEMATIC_NAV_HOOKED__) return;
     window.__CINEMATIC_NAV_HOOKED__ = true;
@@ -648,7 +664,7 @@
         if(isReturnOrTimewarpTarget(safeTarget)) return oldLinkedGo.call(this, target, label);
 
         const indexDelta = Math.abs(safeTarget - current);
-        doNavigate(safeTarget, indexDelta >= 2);
+        runCinematicNavigate(() => doNavigate(safeTarget, indexDelta >= 2));
       };
     }
 
@@ -664,7 +680,7 @@
         );
         if(isReturnOrTimewarpTarget(target)) return oldNextSlide.call(this);
         if(target === current) return oldNextSlide.call(this);
-        doNavigate(target, false);
+        runCinematicNavigate(() => doNavigate(target, false));
       };
     }
   }
