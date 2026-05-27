@@ -1,6 +1,6 @@
 // 안정화 패치: 첫 제목 반짝임, 선택 도장 쾅 애니메이션, 마지막 결론 도장
 (function(){
-  const VERSION = '2026-05-27-animation-bugfix-v11-stamp-transform-fix';
+  const VERSION = '2026-05-27-animation-bugfix-v12-stamp-once';
   if(window.__ANIMATION_BUGFIX__ === VERSION) return;
   window.__ANIMATION_BUGFIX__ = VERSION;
 
@@ -30,7 +30,6 @@
         100%{filter:none;text-shadow:none}
       }
 
-      /* 선택지 피드백 도장: 중요 고정값에서 transform/opacity를 빼서 애니메이션이 실제로 보이게 한다. */
       .feedback .verdict-stamp{
         position:static!important;
         inset:auto!important;
@@ -75,7 +74,6 @@
         100%{opacity:1;transform:translateY(0) rotate(-5deg) scale(1);filter:none;box-shadow:0 6px 14px rgba(141,47,39,.12)}
       }
 
-      /* 마지막 결론 도장: 더 위쪽에 배치하고, transform !important를 제거해 찍힘 애니메이션이 보이게 한다. */
       .slide.verdict-stage{position:relative!important;overflow:hidden}
       .final-completion-stamp{
         position:absolute!important;
@@ -141,12 +139,12 @@
     if(!isIntroSlide(slide)) return;
     const h1 = slide.querySelector('h1');
     if(!h1) return;
-    if(h1.dataset.sparkleVersion !== 'v11'){
+    if(h1.dataset.sparkleVersion !== 'v12'){
       const compact = h1.textContent.replace(/\s+/g,'');
       const lines = /역사는흑백이아니다/.test(compact) ? ['역사는','흑백이','아니다'] : (h1.textContent || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
       h1.innerHTML = '';
       h1.classList.add('intro-spark-title');
-      h1.dataset.sparkleVersion = 'v11';
+      h1.dataset.sparkleVersion = 'v12';
       h1.dataset.sparklePlayed = '';
       let n = 0;
       lines.forEach((line, lineIndex) => {
@@ -193,27 +191,39 @@
     });
   }
 
-  function ensureChoiceStamp(slide, force){
+  function contentKeyForFeedback(feedback, stamp){
+    return Array.from(feedback.childNodes)
+      .filter(node => node !== stamp)
+      .map(node => node.textContent || '')
+      .join('')
+      .replace(/\s+/g,' ')
+      .trim()
+      .slice(0,120);
+  }
+
+  function ensureChoiceStamp(slide){
     visibleFeedbacks(slide).forEach(feedback => {
       let stamp = feedback.querySelector('.verdict-stamp');
+      let created = false;
       if(!stamp){
         stamp = document.createElement('div');
         stamp.className = 'verdict-stamp';
         stamp.innerHTML = '<span>판정 완료</span><small>선택 반영</small>';
         feedback.appendChild(stamp);
-        force = true;
+        created = true;
       }
-      const contentWithoutStamp = Array.from(feedback.childNodes).filter(node => node !== stamp).map(node => node.textContent || '').join('').trim();
-      const key = contentWithoutStamp.slice(0,100);
-      if(!force && stamp.dataset.lastImpactKey === key) return;
+      const key = contentKeyForFeedback(feedback, stamp);
+      const shouldImpact = created || stamp.dataset.lastImpactKey !== key;
       stamp.dataset.lastImpactKey = key;
+      if(!shouldImpact) return;
+
       stamp.classList.remove('stamp-impact');
       void stamp.offsetWidth;
       stamp.classList.add('stamp-impact');
     });
   }
 
-  function ensureFinalStamp(slide, force){
+  function ensureFinalStamp(slide){
     if(!slide) return;
     if(!isConclusionSlide(slide)){
       slide.classList.remove('verdict-stage');
@@ -224,17 +234,18 @@
     }
     slide.classList.add('verdict-stage');
     let stamp = Array.from(slide.children).find(el => el.classList && (el.classList.contains('final-completion-stamp') || el.classList.contains('cinematic-verdict-stamp')));
+    let created = false;
     if(!stamp){
       stamp = document.createElement('div');
       stamp.className = 'final-completion-stamp';
       stamp.innerHTML = '<span>판결 완료</span>';
       slide.appendChild(stamp);
-      force = true;
+      created = true;
     }else{
       stamp.classList.add('final-completion-stamp');
       stamp.innerHTML = '<span>판결 완료</span>';
     }
-    if(force || stamp.dataset.impactPlayed !== '1'){
+    if(created || stamp.dataset.impactPlayed !== '1'){
       stamp.dataset.impactPlayed = '1';
       stamp.classList.remove('final-stamp-impact');
       void stamp.offsetWidth;
@@ -242,34 +253,34 @@
     }
   }
 
-  function refresh(forceIntro, forceStamp){
+  function refresh(forceIntro){
     refreshTimer = null;
     addStyles();
     const slide = getActiveSlide();
     if(!slide) return;
     ensureIntroSparkle(slide, !!forceIntro);
-    ensureChoiceStamp(slide, !!forceStamp);
-    ensureFinalStamp(slide, !!forceStamp);
+    ensureChoiceStamp(slide);
+    ensureFinalStamp(slide);
   }
 
-  function schedule(delay, forceIntro, forceStamp){
+  function schedule(delay, forceIntro){
     if(refreshTimer) clearTimeout(refreshTimer);
-    refreshTimer = setTimeout(() => refresh(forceIntro, forceStamp), delay || 80);
+    refreshTimer = setTimeout(() => refresh(forceIntro), delay || 80);
   }
 
   function wrap(name){
     const original = window[name];
-    if(typeof original !== 'function' || original.__animationBugfixWrappedV11) return;
+    if(typeof original !== 'function' || original.__animationBugfixWrappedV12) return;
     function wrapped(){
       const result = original.apply(this, arguments);
       const target = arguments.length ? parseInt(arguments[0], 10) : NaN;
       const forceIntro = name === 'resetPresentation' || name === 'startTimeTravel' || target === 0;
-      schedule(80, forceIntro, true);
-      setTimeout(() => refresh(forceIntro, true), 260);
-      setTimeout(() => refresh(forceIntro, true), 520);
+      schedule(80, forceIntro);
+      setTimeout(() => refresh(forceIntro), 260);
+      setTimeout(() => refresh(forceIntro), 520);
       return result;
     }
-    wrapped.__animationBugfixWrappedV11 = true;
+    wrapped.__animationBugfixWrappedV12 = true;
     window[name] = wrapped;
   }
 
@@ -280,14 +291,14 @@
     const app = document.getElementById('app');
     if(!app) return;
     observerStarted = true;
-    new MutationObserver(() => schedule(40, false, false)).observe(app, {childList:true, subtree:false});
+    new MutationObserver(() => schedule(40, false)).observe(app, {childList:true, subtree:false});
   }
 
   document.addEventListener('click', event => {
     if(event.target.closest('.choice,[data-choice],button,a')){
-      setTimeout(() => refresh(false, true), 90);
-      setTimeout(() => refresh(false, true), 240);
-      setTimeout(() => refresh(false, true), 520);
+      setTimeout(() => refresh(false), 90);
+      setTimeout(() => refresh(false), 240);
+      setTimeout(() => refresh(false), 520);
     }
   }, true);
 
@@ -295,7 +306,7 @@
     addStyles();
     hook();
     startObserver();
-    refresh(attempts === 10, false);
+    refresh(attempts === 10);
     if(attempts > 0) setTimeout(() => boot(attempts - 1), 180);
   }
 
