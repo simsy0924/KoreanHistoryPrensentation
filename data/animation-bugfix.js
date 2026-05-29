@@ -1,11 +1,12 @@
 // 안정화 패치: 첫 제목 반짝임, 선택 도장 쾅 애니메이션, 마지막 결론 도장
 (function(){
-  const VERSION = '2026-05-27-animation-bugfix-v12-stamp-once';
+  const VERSION = '2026-05-27-animation-bugfix-v13-stamp-global-once';
   if(window.__ANIMATION_BUGFIX__ === VERSION) return;
   window.__ANIMATION_BUGFIX__ = VERSION;
 
   let refreshTimer = null;
   let observerStarted = false;
+  const impactedChoiceKeys = new Set();
 
   function addStyles(){
     const old = document.getElementById('animationBugfixStyles');
@@ -139,12 +140,12 @@
     if(!isIntroSlide(slide)) return;
     const h1 = slide.querySelector('h1');
     if(!h1) return;
-    if(h1.dataset.sparkleVersion !== 'v12'){
+    if(h1.dataset.sparkleVersion !== 'v13'){
       const compact = h1.textContent.replace(/\s+/g,'');
       const lines = /역사는흑백이아니다/.test(compact) ? ['역사는','흑백이','아니다'] : (h1.textContent || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
       h1.innerHTML = '';
       h1.classList.add('intro-spark-title');
-      h1.dataset.sparkleVersion = 'v12';
+      h1.dataset.sparkleVersion = 'v13';
       h1.dataset.sparklePlayed = '';
       let n = 0;
       lines.forEach((line, lineIndex) => {
@@ -201,22 +202,27 @@
       .slice(0,120);
   }
 
+  function globalChoiceKey(feedback, stamp){
+    const key = contentKeyForFeedback(feedback, stamp);
+    return getCurrent() + '|' + key;
+  }
+
   function ensureChoiceStamp(slide){
     visibleFeedbacks(slide).forEach(feedback => {
       let stamp = feedback.querySelector('.verdict-stamp');
-      let created = false;
       if(!stamp){
         stamp = document.createElement('div');
         stamp.className = 'verdict-stamp';
         stamp.innerHTML = '<span>판정 완료</span><small>선택 반영</small>';
         feedback.appendChild(stamp);
-        created = true;
       }
-      const key = contentKeyForFeedback(feedback, stamp);
-      const shouldImpact = created || stamp.dataset.lastImpactKey !== key;
-      stamp.dataset.lastImpactKey = key;
-      if(!shouldImpact) return;
 
+      const localKey = contentKeyForFeedback(feedback, stamp);
+      const key = getCurrent() + '|' + localKey;
+      stamp.dataset.lastImpactKey = localKey;
+      if(!localKey || impactedChoiceKeys.has(key)) return;
+
+      impactedChoiceKeys.add(key);
       stamp.classList.remove('stamp-impact');
       void stamp.offsetWidth;
       stamp.classList.add('stamp-impact');
@@ -270,8 +276,9 @@
 
   function wrap(name){
     const original = window[name];
-    if(typeof original !== 'function' || original.__animationBugfixWrappedV12) return;
+    if(typeof original !== 'function' || original.__animationBugfixWrappedV13) return;
     function wrapped(){
+      if(name === 'resetPresentation') impactedChoiceKeys.clear();
       const result = original.apply(this, arguments);
       const target = arguments.length ? parseInt(arguments[0], 10) : NaN;
       const forceIntro = name === 'resetPresentation' || name === 'startTimeTravel' || target === 0;
@@ -280,7 +287,7 @@
       setTimeout(() => refresh(forceIntro), 520);
       return result;
     }
-    wrapped.__animationBugfixWrappedV12 = true;
+    wrapped.__animationBugfixWrappedV13 = true;
     window[name] = wrapped;
   }
 
