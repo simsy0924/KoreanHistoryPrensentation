@@ -10,15 +10,19 @@
   html,body{margin:0;width:100%;min-height:100%;background:var(--bg);color:var(--paper);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
   .loader{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:1rem;background:radial-gradient(circle at 20% 0%,rgba(201,154,58,.22),transparent 28rem),var(--bg);color:var(--paper)}
   .box{width:min(92vw,560px);padding:1.2rem 1.4rem;border:1px solid var(--line);border-radius:1.2rem;background:rgba(16,14,11,.72);box-shadow:0 24px 70px rgba(0,0,0,.35)}
-  .box strong{display:block;font-size:1.25rem;margin-bottom:.35rem}.box p{margin:.25rem 0;color:rgba(245,234,210,.72);line-height:1.6}.box code{color:#f1c76e}
-  .actions{margin-top:.8rem;display:none;gap:.5rem;flex-wrap:wrap}.actions.is-visible{display:flex}.actions a,.actions button{border:1px solid rgba(245,234,210,.22);background:rgba(245,234,210,.08);color:#f5ead2;border-radius:999px;padding:.45rem .7rem;font:inherit;text-decoration:none;cursor:pointer}
+  .box strong{display:block;font-size:1.25rem;margin-bottom:.35rem}
+  .box p{margin:.25rem 0;color:rgba(245,234,210,.72);line-height:1.6}
+  .box code{color:#f1c76e}
+  .actions{margin-top:.8rem;display:none;gap:.5rem;flex-wrap:wrap}
+  .actions.is-visible{display:flex}
+  .actions a,.actions button{border:1px solid rgba(245,234,210,.22);background:rgba(245,234,210,.08);color:#f5ead2;border-radius:999px;padding:.45rem .7rem;font:inherit;text-decoration:none;cursor:pointer}
 </style>
 </head>
 <body>
 <div class="loader" id="loader">
   <div class="box">
-    <strong>발표 자료를 iframe 없이 복원하는 중...</strong>
-    <p>원본 발표 구조를 현재 문서에 펼치고, JS 파일은 애니메이션·전환·보조 기능 레이어로만 연결합니다.</p>
+    <strong>발표 자료를 iframe 없이 여는 중...</strong>
+    <p>기본 발표 구조를 현재 문서에 펼치고, 추가 JS는 내용 보강과 효과 레이어로만 연결합니다.</p>
     <p id="loadMessage">원본 발표 자료 가져오는 중</p>
     <div class="actions" id="fallbackActions">
       <button type="button" onclick="location.reload()">다시 시도</button>
@@ -30,25 +34,24 @@
 (function(){
   'use strict';
 
-  const VERSION = '20260529-no-iframe-enhancement-layer-v1';
+  const VERSION = '20260529-clean-index-v1';
   const ORIGINAL_INDEX_URL = 'https://raw.githubusercontent.com/simsy0924/KoreanHistoryPrensentation/22a5820d6640df3ba65c580c65154be8989caa48/index.html?raw=' + VERSION;
 
-  // 내용 수정용 패치와 애니메이션 패치를 순서대로 적용한다.
-  // 다음 단계에서는 내용 수정용 패치는 index.html 본문으로 흡수하고,
-  // 아래 목록에는 애니메이션/전환/네비게이션 보조 파일만 남기면 된다.
-  const ENHANCEMENT_SCRIPTS = [
+  // TODO: 다음 정리 단계에서 contentScripts의 결과를 index.html 본문으로 흡수하면,
+  // 이 배열은 삭제하고 effectScripts만 유지한다.
+  const contentScripts = [
     './data/yunchiho-diary-entries.js',
     './data/yunchiho-diary-section.js',
     './data/yunchiho-diary-tone-revision.js',
     './data/presentation-revision-notes.js',
     './data/source-slide-content-revision.js',
-    './data/hwangguk-association-slide-revision.js',
+    './data/hwangguk-association-slide-revision.js'
+  ];
+
+  const effectScripts = [
     './data/page-jump-navigation.js',
     './data/presentation-effects-revision.js',
-    './data/animation-enhancements.js',
-    './data/cinematic-effects.js',
-    './data/animation-bugfix.js',
-    './data/ink-transition-lite.js'
+    './data/presentation-enhancements.js'
   ];
 
   const message = document.getElementById('loadMessage');
@@ -69,11 +72,18 @@
     return html.replace(/<head(.*?)>/i, '<head$1><base href="./">');
   }
 
-  function addEnhancementScripts(html){
-    const tags = ENHANCEMENT_SCRIPTS.map(src => {
-      const joiner = src.includes('?') ? '&' : '?';
-      return '<script src="' + src + joiner + 'v=' + VERSION + '"><\/script>';
-    }).join('\n');
+  function scriptTag(src){
+    const joiner = src.includes('?') ? '&' : '?';
+    return '<script src="' + src + joiner + 'v=' + VERSION + '"><\/script>';
+  }
+
+  function attachScripts(html){
+    const tags = [
+      '<!-- content patches: 발표 본문 보강. 추후 index.html 본문으로 흡수 예정 -->',
+      ...contentScripts.map(scriptTag),
+      '<!-- effects: 애니메이션, 이동, 보조 UI -->',
+      ...effectScripts.map(scriptTag)
+    ].join('\n');
 
     if(html.includes('</body>')) return html.replace('</body>', tags + '\n</body>');
     return html + tags;
@@ -84,10 +94,10 @@
       const response = await fetch(ORIGINAL_INDEX_URL, {cache:'no-store'});
       if(!response.ok) throw new Error('원본 index.html을 가져오지 못했습니다: ' + response.status);
 
-      setMessage('원본 구조와 효과 레이어 적용 중');
+      setMessage('발표 구조와 보조 효과 적용 중');
       let html = await response.text();
       html = addBaseTag(html);
-      html = addEnhancementScripts(html);
+      html = attachScripts(html);
 
       document.open();
       document.write(html);
