@@ -1,13 +1,23 @@
 // 발표 보조 효과 레이어
-// 이 파일은 발표 내용을 수정하지 않고, 애니메이션·전환·보조 UI만 담당한다.
+// 발표 내용은 수정하지 않고, 애니메이션·전환·보조 UI만 담당한다.
 (function(){
   'use strict';
-  const VERSION = '2026-05-29-enhancement-layer-v2-return-present';
+
+  const VERSION = '2026-05-29-enhancement-layer-v3-return-fix';
   if(window.__PRESENTATION_ENHANCEMENTS__ === VERSION) return;
   window.__PRESENTATION_ENHANCEMENTS__ = VERSION;
 
   let inkPlaying = false;
   let returning = false;
+  let baseGoTo = null;
+
+  function slideCount(){
+    return document.querySelectorAll('.slide').length;
+  }
+
+  function activeSlide(){
+    return document.querySelector('.slide.active');
+  }
 
   function addStyles(){
     if(document.getElementById('presentationEnhancementStyles')) return;
@@ -19,20 +29,15 @@
 
       .intro-spark-title .intro-spark-letter{display:inline-block;will-change:filter,text-shadow,transform}
       .intro-spark-title.sparkle-playing .intro-spark-letter{animation:introSoftSparkle .86s ease-out both}
-      @keyframes introSoftSparkle{
-        0%{filter:none;text-shadow:none;transform:translateY(0)}
-        28%{filter:brightness(1.35);text-shadow:0 0 7px rgba(245,234,210,.62),0 0 18px rgba(201,154,58,.38);transform:translateY(-1px)}
-        100%{filter:none;text-shadow:none;transform:translateY(0)}
-      }
+      @keyframes introSoftSparkle{0%{filter:none;text-shadow:none;transform:translateY(0)}28%{filter:brightness(1.35);text-shadow:0 0 7px rgba(245,234,210,.62),0 0 18px rgba(201,154,58,.38);transform:translateY(-1px)}100%{filter:none;text-shadow:none;transform:translateY(0)}}
 
-      .verdict-stamp,.final-completion-stamp{backface-visibility:hidden;-webkit-font-smoothing:antialiased}
-      .feedback .verdict-stamp{display:block;width:max-content;max-width:100%;margin:.9rem 0 0 auto;padding:.38rem .7rem .42rem;border:3px double rgba(141,47,39,.86);border-radius:.35rem;color:var(--red,#8d2f27);background:rgba(255,255,255,.28);font-family:"Noto Serif KR",serif;font-weight:950;letter-spacing:-.05em;transform:rotate(-5deg) scale(1);box-shadow:0 6px 14px rgba(141,47,39,.12);pointer-events:none}
+      .feedback .verdict-stamp{display:block;width:max-content;max-width:100%;margin:.9rem 0 0 auto;padding:.38rem .7rem .42rem;border:3px double rgba(141,47,39,.86);border-radius:.35rem;color:var(--red,#8d2f27);background:rgba(255,255,255,.28);font-family:"Noto Serif KR",serif;font-weight:950;letter-spacing:-.05em;transform:rotate(-5deg) scale(1);box-shadow:0 6px 14px rgba(141,47,39,.12);pointer-events:none;backface-visibility:hidden;-webkit-font-smoothing:antialiased}
       .feedback .verdict-stamp span{display:block;line-height:1;font-size:1.05rem}.feedback .verdict-stamp small{display:block;margin-top:.14rem;font-family:"Noto Sans KR",sans-serif;font-size:.72rem;letter-spacing:-.03em}
       .feedback .verdict-stamp.stamp-impact{animation:choiceStampImpact .54s cubic-bezier(.16,1.14,.28,1) both}
       @keyframes choiceStampImpact{0%{opacity:0;transform:translateY(-28px) rotate(-15deg) scale(2.15);filter:blur(2px)}54%{opacity:1;transform:translateY(0) rotate(-5deg) scale(.9);filter:none;box-shadow:inset 0 0 0 2px rgba(141,47,39,.34),0 0 0 10px rgba(141,47,39,.16),0 12px 24px rgba(141,47,39,.18)}76%{transform:rotate(-5deg) scale(1.04)}100%{opacity:1;transform:rotate(-5deg) scale(1);filter:none}}
 
       .slide.verdict-stage{position:relative;overflow:hidden}
-      .final-completion-stamp{position:absolute;right:clamp(1.2rem,7vw,5rem);bottom:clamp(7.5rem,22vh,13rem);z-index:50;min-width:8.4rem;padding:.55rem .9rem .62rem;border:.28rem solid #8d2f27;border-radius:.55rem;display:grid;place-items:center;color:#8d2f27;background:rgba(255,248,232,.10);font-family:"Noto Serif KR",serif;font-weight:950;font-size:clamp(1.25rem,2.6vmin,2rem);letter-spacing:-.08em;transform:rotate(-7deg) scale(1);box-shadow:inset 0 0 0 .12rem rgba(141,47,39,.42),0 0 24px rgba(141,47,39,.24);pointer-events:none}
+      .final-completion-stamp{position:absolute;right:clamp(1.2rem,7vw,5rem);bottom:clamp(7.5rem,22vh,13rem);z-index:50;min-width:8.4rem;padding:.55rem .9rem .62rem;border:.28rem solid #8d2f27;border-radius:.55rem;display:grid;place-items:center;color:#8d2f27;background:rgba(255,248,232,.10);font-family:"Noto Serif KR",serif;font-weight:950;font-size:clamp(1.25rem,2.6vmin,2rem);letter-spacing:-.08em;transform:rotate(-7deg) scale(1);box-shadow:inset 0 0 0 .12rem rgba(141,47,39,.42),0 0 24px rgba(141,47,39,.24);pointer-events:none;backface-visibility:hidden;-webkit-font-smoothing:antialiased}
       .final-completion-stamp.final-stamp-impact{animation:finalStampImpact .62s cubic-bezier(.16,1.12,.28,1) both}
       @keyframes finalStampImpact{0%{opacity:0;transform:translate3d(0,-160px,0) rotate(-17deg) scale(1.8);filter:blur(2px)}58%{opacity:1;transform:translate3d(0,0,0) rotate(-7deg) scale(.93);filter:none}78%{transform:rotate(-7deg) scale(1.04)}100%{opacity:1;transform:rotate(-7deg) scale(1)}}
 
@@ -40,8 +45,7 @@
       #inkLiteSweep.active{opacity:1}
       #inkLiteSweep .ink-lite-brush{position:absolute;top:-22vh;bottom:-22vh;left:-44vw;width:48vw;transform:translateX(-76vw) rotate(-8deg) skewX(-7deg);opacity:0;border-radius:48% 52% 58% 42% / 38% 62% 45% 55%;clip-path:polygon(10% 0,92% 6%,82% 20%,100% 38%,78% 56%,92% 74%,68% 100%,0 92%,14% 72%,4% 52%,18% 30%,0 11%);background:linear-gradient(90deg,rgba(7,6,4,0),rgba(7,6,4,.62) 13%,rgba(3,3,2,.94) 43%,rgba(4,3,2,.9) 58%,rgba(20,14,9,.72) 77%,rgba(201,154,58,.18) 89%,rgba(7,6,4,0));filter:drop-shadow(0 0 13px rgba(0,0,0,.62));will-change:transform,opacity}
       #inkLiteSweep .ink-lite-edge{position:absolute;top:-16vh;bottom:-16vh;left:-22vw;width:9vw;opacity:0;border-radius:50%;transform:translateX(-48vw) rotate(-8deg);background:linear-gradient(90deg,transparent,rgba(245,234,210,.32),rgba(201,154,58,.27),transparent);filter:blur(5px)}
-      #inkLiteSweep.active .ink-lite-brush{animation:inkLiteBrush .92s cubic-bezier(.42,0,.18,1) both}
-      #inkLiteSweep.active .ink-lite-edge{animation:inkLiteEdge .92s cubic-bezier(.42,0,.18,1) both}
+      #inkLiteSweep.active .ink-lite-brush{animation:inkLiteBrush .92s cubic-bezier(.42,0,.18,1) both}#inkLiteSweep.active .ink-lite-edge{animation:inkLiteEdge .92s cubic-bezier(.42,0,.18,1) both}
       @keyframes inkLiteBrush{0%{transform:translateX(-76vw) rotate(-8deg) skewX(-7deg) scaleX(.9);opacity:0}14%{opacity:.88}44%{transform:translateX(35vw) rotate(-5deg) skewX(-4deg) scaleX(1.24);opacity:.92}68%{transform:translateX(75vw) rotate(-6deg) skewX(-5deg) scaleX(1.08);opacity:.78}100%{transform:translateX(142vw) rotate(-8deg) skewX(-7deg) scaleX(.9);opacity:0}}
       @keyframes inkLiteEdge{0%{transform:translateX(-52vw) rotate(-8deg);opacity:0}26%{opacity:.82}62%{opacity:.54}100%{transform:translateX(128vw) rotate(-8deg);opacity:0}}
 
@@ -56,16 +60,10 @@
       #returnPresentEffect .return-msg{position:absolute;left:50%;bottom:10vh;width:min(92vw,620px);z-index:4;text-align:center;padding:1.15rem 1.45rem;border:1px solid rgba(245,234,210,.22);border-radius:1.4rem;background:rgba(16,14,11,.6);backdrop-filter:blur(10px);box-shadow:0 24px 70px rgba(0,0,0,.3);animation:returnMsg 3.05s ease both}
       #returnPresentEffect .return-msg strong{display:block;font-family:"Noto Serif KR",serif;font-size:clamp(1.45rem,4vw,2.8rem);letter-spacing:-.06em;line-height:1.12}
       #returnPresentEffect .return-msg p{margin:.45rem 0 0;color:rgba(255,248,232,.72);line-height:1.55}
-      @keyframes returnFade{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}
-      @keyframes returnRing{from{transform:translate(-50%,-50%) scale(1.85);opacity:0}28%{opacity:.55}to{transform:translate(-50%,-50%) scale(.42);opacity:0}}
-      @keyframes returnTunnel{from{transform:scale(1.6) rotate(-170deg);opacity:.15}45%{opacity:.92}to{transform:scale(.76) rotate(0deg);opacity:.25}}
-      @keyframes returnYear{0%{opacity:0;transform:translate(-50%,-50%) scale(.62);filter:blur(2px)}18%,68%{opacity:.95;transform:translate(-50%,-50%) scale(1);filter:blur(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(2.05);filter:blur(8px)}}
-      @keyframes returnMsg{0%,42%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.98)}55%,84%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-8px) scale(.98)}}
+      @keyframes returnFade{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}@keyframes returnRing{from{transform:translate(-50%,-50%) scale(1.85);opacity:0}28%{opacity:.55}to{transform:translate(-50%,-50%) scale(.42);opacity:0}}@keyframes returnTunnel{from{transform:scale(1.6) rotate(-170deg);opacity:.15}45%{opacity:.92}to{transform:scale(.76) rotate(0deg);opacity:.25}}@keyframes returnYear{0%{opacity:0;transform:translate(-50%,-50%) scale(.62);filter:blur(2px)}18%,68%{opacity:.95;transform:translate(-50%,-50%) scale(1);filter:blur(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(2.05);filter:blur(8px)}}@keyframes returnMsg{0%,42%{opacity:0;transform:translateX(-50%) translateY(10px) scale(.98)}55%,84%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-8px) scale(.98)}}
     `;
     document.head.appendChild(style);
   }
-
-  function slideCount(){ return document.querySelectorAll('.slide').length; }
 
   function ensureInk(){
     let overlay = document.getElementById('inkLiteSweep');
@@ -89,6 +87,16 @@
     return overlay;
   }
 
+  function goDirect(target){
+    if(typeof baseGoTo === 'function') return baseGoTo.call(window, target);
+    if(typeof window.goTo === 'function') return window.goTo(target);
+  }
+
+  function isReturnTarget(target, before){
+    const count = slideCount();
+    return count > 1 && before === count - 2 && target === count - 1;
+  }
+
   function playInk(){
     if(inkPlaying || returning || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     inkPlaying = true;
@@ -99,11 +107,6 @@
     setTimeout(() => { overlay.classList.remove('active'); inkPlaying = false; }, 1000);
   }
 
-  function isReturnTarget(target){
-    const count = slideCount();
-    return count > 1 && target === count - 1 && window.current === count - 2;
-  }
-
   function playReturnAndGo(target){
     if(returning) return;
     returning = true;
@@ -111,9 +114,12 @@
     overlay.classList.remove('active');
     void overlay.offsetWidth;
     overlay.classList.add('active');
+
     setTimeout(() => {
-      if(typeof window.goTo === 'function') window.goTo(target);
+      goDirect(target);
+      setTimeout(() => ensureFinalStamp(), 90);
     }, 980);
+
     setTimeout(() => {
       overlay.classList.remove('active');
       returning = false;
@@ -122,7 +128,7 @@
   }
 
   function enhanceIntro(){
-    const slide = document.querySelector('.slide.active');
+    const slide = activeSlide();
     if(!slide || typeof window.current !== 'number' || window.current !== 0) return;
     const h1 = slide.querySelector('h1');
     if(!h1 || h1.dataset.sparkleReady === '1') return;
@@ -164,7 +170,7 @@
 
   function ensureFinalStamp(){
     const slides = Array.from(document.querySelectorAll('.slide'));
-    const slide = document.querySelector('.slide.active');
+    const slide = activeSlide();
     if(!slide || typeof window.current !== 'number') return;
     const isFinal = window.current === slides.length - 1;
     slide.classList.toggle('verdict-stage', isFinal);
@@ -186,15 +192,23 @@
     ['goTo','nextSlide','prevSlide','resetPresentation','startTimeTravel'].forEach(name => {
       const original = window[name];
       if(typeof original !== 'function' || original.__enhancementWrapped) return;
+      if(name === 'goTo') baseGoTo = original;
+
       window[name] = function(){
         const before = typeof window.current === 'number' ? window.current : -1;
-        const target = name === 'goTo' ? Math.max(0, Math.min(Number(arguments[0]) || 0, slideCount() - 1)) : name === 'nextSlide' ? Math.min(before + 1, slideCount() - 1) : NaN;
-        if((name === 'goTo' || name === 'nextSlide') && isReturnTarget(target)){
+        const target = name === 'goTo'
+          ? Math.max(0, Math.min(Number(arguments[0]) || 0, slideCount() - 1))
+          : name === 'nextSlide'
+            ? Math.min(before + 1, slideCount() - 1)
+            : NaN;
+
+        if(!returning && (name === 'goTo' || name === 'nextSlide') && isReturnTarget(target, before)){
           playReturnAndGo(target);
           return;
         }
+
         const result = original.apply(this, arguments);
-        const shouldSkipInk = name === 'startTimeTravel' || name === 'resetPresentation' || target === 0 || before === 0;
+        const shouldSkipInk = returning || name === 'startTimeTravel' || name === 'resetPresentation' || target === 0 || before === 0;
         if(!shouldSkipInk) playInk();
         setTimeout(() => { playIntroSparkle(); ensureFinalStamp(); }, 140);
         return result;
