@@ -1,9 +1,9 @@
 // 발표 보조 레이어
-// 주의: 본문 문구를 자동으로 복구/변경하지 않는다. 디자인, 전환, 깨진 DOM 구조 보정만 담당한다.
+// 문구는 자동으로 복구/변경하지 않는다. 디자인, 전환, 깨진 DOM 구조 보정만 담당한다.
 (function(){
   'use strict';
 
-  const VERSION = '2026-06-01-design-only-yunchiho-repair';
+  const VERSION = '2026-06-01-yunchiho-layout-hard-fix';
   if(window.__PRESENTATION_ENHANCEMENTS__ === VERSION) return;
   window.__PRESENTATION_ENHANCEMENTS__ = VERSION;
 
@@ -34,8 +34,6 @@
 
       .diary-card{min-width:0}
       .diary-card .route{margin-top:auto}
-      .diary-card .pq{margin-top:auto;padding:.8rem;border-radius:.9rem;background:rgba(141,47,39,.1);font-weight:850;color:#3b291c}
-      .diary-tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.45rem}.diary-tags .tag{margin-bottom:0;font-size:.72rem}
       .slide[data-title*="윤치호 일기로 보는"] .cols3,.slide[data-title*="기대는 왜 균열"] .cols3{align-items:stretch}
       .slide[data-title*="윤치호 일기로 보는"] .diary-card .quote,.slide[data-title*="기대는 왜 균열"] .diary-card .quote{max-height:min(34vh,24rem);overflow:auto;padding-right:.95rem;scrollbar-width:thin}
       .slide[data-title*="윤치호 일기로 보는"] .diary-card .quote::-webkit-scrollbar,.slide[data-title*="기대는 왜 균열"] .diary-card .quote::-webkit-scrollbar{width:.45rem}
@@ -49,69 +47,89 @@
     document.head.appendChild(style);
   }
 
+  function textOf(node){ return (node && node.textContent || '').trim(); }
+  function isBlankText(node){ return node.nodeType === Node.TEXT_NODE && !textOf(node); }
+  function removeNode(node){ if(node && node.parentNode) node.parentNode.removeChild(node); }
+
   function repairYunchihoDiaryLayout(){
     const slide = $$('.slide').find(s => (s.dataset.title || '').includes('윤치호 일기로 보는') || ($('h2', s)?.textContent || '').includes('윤치호 일기로 보는'));
-    if(!slide || slide.dataset.diaryLayoutFixed === '1') return;
+    if(!slide) return;
     const wrap = $(':scope > .wrap', slide) || $('.wrap', slide);
-    const grid = $('.cols3', wrap);
+    const grid = $('.cols3', wrap || slide);
     if(!wrap || !grid) return;
 
-    $$('*', grid).forEach(el => {
-      if(el.tagName && el.tagName.toLowerCase() === 'div<') el.remove();
+    // 예전 보조 스크립트가 붙인 태그는 본문이 아니라 디자인 보조물이므로 제거한다.
+    $$('.diary-tags', slide).forEach(removeNode);
+
+    // 깨져 생긴 빈 '해석' 카드 제거. 실제 해석 문장이 있는 route는 그대로 둔다.
+    $$('article.diary-card', grid).forEach(card => {
+      const onlyText = textOf(card);
+      if(onlyText === '해석') removeNode(card);
     });
 
     const firstCard = $('article.diary-card', grid);
-    const interpretationOnlyCard = $$('article.diary-card', grid).find(card => card !== firstCard && card.textContent.trim() === '해석');
-    if(interpretationOnlyCard){
-      const existingText = interpretationOnlyCard.textContent.trim();
-      interpretationOnlyCard.remove();
-      if(existingText && firstCard && !$('.route', firstCard)){
-        const route = document.createElement('div');
-        route.className = 'route';
-        const strong = document.createElement('strong');
-        strong.textContent = existingText;
-        route.appendChild(strong);
-        firstCard.appendChild(route);
-      }
+    if(firstCard){
+      const broken = Array.from(firstCard.childNodes).find(node => node.nodeType === Node.ELEMENT_NODE && String(node.tagName).toLowerCase() === 'div<');
+      removeNode(broken);
     }
 
-    if(!Array.from(grid.children).some(el => /2\.\s*1898-10-31/.test(el.textContent))){
-      const directNodes = Array.from(slide.childNodes);
-      const dateNode = directNodes.find(node => node.nodeType === Node.TEXT_NODE && /2\.\s*1898-10-31/.test(node.textContent || ''));
-      const sourceSpan = Array.from(slide.children).find(el => el.tagName === 'SPAN' && el.textContent.includes('국역 윤치호'));
-      const secondTitle = Array.from(slide.children).find(el => el.tagName === 'H3' && el.textContent.includes('헌의 6조'));
+    let secondCard = $$('article.diary-card', grid).find(card => /2\.\s*1898-10-31/.test(textOf(card)) || /헌의 6조/.test(textOf(card)));
+    const existingOutsideSecondTitle = Array.from(wrap.children).find(el => el.tagName === 'H3' && /헌의 6조/.test(textOf(el)));
 
-      if(dateNode && secondTitle){
-        const secondCard = document.createElement('article');
-        secondCard.className = 'paper diary-card';
+    if(!secondCard && existingOutsideSecondTitle){
+      secondCard = document.createElement('article');
+      secondCard.className = 'paper diary-card';
 
-        const meta = document.createElement('div');
-        meta.className = 'diary-meta';
-        const dateStrong = document.createElement('strong');
-        dateStrong.textContent = dateNode.textContent.trim();
-        dateNode.textContent = '';
-        meta.appendChild(dateStrong);
-        if(sourceSpan) meta.appendChild(sourceSpan);
-        secondCard.appendChild(meta);
+      const meta = document.createElement('div');
+      meta.className = 'diary-meta';
+      const dateStrong = document.createElement('strong');
 
-        let node = secondTitle;
-        while(node){
-          const next = node.nextSibling;
-          secondCard.appendChild(node);
-          if(node.nodeType === Node.ELEMENT_NODE && node.matches('.route')) break;
-          node = next;
-        }
-        grid.appendChild(secondCard);
+      const strayDateNode = Array.from(wrap.childNodes).find(node => node.nodeType === Node.TEXT_NODE && /2\.\s*1898-10-31/.test(node.textContent || ''));
+      let sourceText = '';
+      if(strayDateNode){
+        const raw = textOf(strayDateNode);
+        const match = raw.match(/2\.\s*1898-10-31/);
+        dateStrong.textContent = match ? match[0] : raw;
+        sourceText = raw.replace(dateStrong.textContent, '').trim();
+        strayDateNode.textContent = '';
+      }else{
+        dateStrong.textContent = '2. 1898-10-31';
       }
+      meta.appendChild(dateStrong);
+
+      const sourceSpan = Array.from(wrap.children).find(el => el.tagName === 'SPAN' && /국역 윤치호/.test(textOf(el)));
+      if(sourceSpan){
+        meta.appendChild(sourceSpan);
+      }else if(sourceText){
+        const span = document.createElement('span');
+        span.textContent = sourceText;
+        meta.appendChild(span);
+      }
+      secondCard.appendChild(meta);
+
+      let node = existingOutsideSecondTitle;
+      while(node){
+        const next = node.nextSibling;
+        if(node.nodeType === Node.TEXT_NODE && !textOf(node)){ node = next; continue; }
+        if(node.nodeType === Node.ELEMENT_NODE && node.matches('article.diary-card') && /3\.\s*1898-11-05/.test(textOf(node))) break;
+        if(node.nodeType === Node.ELEMENT_NODE && node.matches('.next')) break;
+        secondCard.appendChild(node);
+        if(node.nodeType === Node.ELEMENT_NODE && node.matches('.route')) break;
+        node = next;
+      }
+      grid.appendChild(secondCard);
     }
 
-    const thirdCard = Array.from(slide.children).find(el => el.matches?.('article.diary-card') && /3\.\s*1898-11-05/.test(el.textContent));
-    if(thirdCard) grid.appendChild(thirdCard);
+    const thirdCard = $$('article.diary-card', wrap).find(card => /3\.\s*1898-11-05/.test(textOf(card)));
+    if(thirdCard && thirdCard.parentElement !== grid) grid.appendChild(thirdCard);
 
-    const nextBox = Array.from(slide.children).find(el => el.matches?.('.next'));
-    if(nextBox) wrap.appendChild(nextBox);
+    if(secondCard && secondCard.parentElement !== grid) grid.appendChild(secondCard);
+    if(secondCard && thirdCard && secondCard.nextElementSibling !== thirdCard){
+      grid.insertBefore(secondCard, thirdCard);
+    }
 
-    slide.dataset.diaryLayoutFixed = '1';
+    const nextBox = Array.from(wrap.children).find(el => el.matches?.('.next')) || Array.from(slide.children).find(el => el.matches?.('.next'));
+    if(nextBox && nextBox.parentElement !== wrap) wrap.appendChild(nextBox);
   }
 
   function ensureInk(){
