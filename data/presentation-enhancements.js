@@ -1,9 +1,9 @@
 // 발표 보조 레이어
-// 본문 문구는 되돌리지 않고, 윤치호 일기 섹션의 깨진 카드 구조와 보조 태그만 복구한다.
+// index.html의 윤치호 일기 섹션에서 깨진 카드 구조를 화면에서 보정한다.
 (function(){
   'use strict';
 
-  const VERSION = '2026-06-01-yunchiho-card-layout-tags';
+  const VERSION = '2026-06-01-yunchiho-no-duplicates';
   if(window.__PRESENTATION_ENHANCEMENTS__ === VERSION) return;
   window.__PRESENTATION_ENHANCEMENTS__ = VERSION;
 
@@ -52,9 +52,6 @@
       .diary-card .pq{margin-top:.45rem;padding:.8rem;border-radius:.9rem;background:rgba(141,47,39,.1);font-weight:850;color:#3b291c}
       .diary-tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.2rem}
       .diary-tags .tag{margin-bottom:0;font-size:.72rem}
-      .feedback .verdict-stamp{display:block;width:max-content;max-width:100%;margin:.9rem 0 0 auto;padding:.38rem .7rem .42rem;border:3px double rgba(141,47,39,.86);border-radius:.35rem;color:var(--red,#8d2f27);background:rgba(255,255,255,.28);font-family:"Noto Serif KR",serif;font-weight:950;letter-spacing:-.05em;transform:rotate(-5deg);box-shadow:0 6px 14px rgba(141,47,39,.12);pointer-events:none}
-      .feedback .verdict-stamp span{display:block;line-height:1;font-size:1.05rem}
-      .feedback .verdict-stamp small{display:block;margin-top:.14rem;font-family:"Noto Sans KR",sans-serif;font-size:.72rem;letter-spacing:-.03em}
     `;
     document.head.appendChild(style);
   }
@@ -68,15 +65,16 @@
   }
 
   function readArticle(article, fallback){
+    if(!article) return {...fallback};
     const title = textOf($('h3', article)) || fallback.title;
     const detail = diaryDetails[title] || {};
-    const pList = $$('p', article).filter(p => !p.classList.contains('quote') && !p.classList.contains('pq'));
+    const bodyP = $$('p', article).find(p => !p.classList.contains('quote') && !p.classList.contains('pq'));
     return {
       date: textOf($('.diary-meta strong', article)) || fallback.date,
       source: textOf($('.diary-meta span', article)) || fallback.source,
       title,
       quote: textOf($('.quote', article)) || fallback.quote,
-      body: textOf(pList[0]) || fallback.body,
+      body: textOf(bodyP) || fallback.body,
       routeTitle: textOf($('.route strong', article)) || fallback.routeTitle,
       routeText: routeText($('.route', article)) || fallback.routeText,
       question: textOf($('.pq', article)) || detail.question || fallback.question,
@@ -96,8 +94,7 @@
   function previousDate(start, fallbackDate){
     let node = start ? start.previousSibling : null;
     while(node){
-      const txt = textOf(node);
-      const match = txt.match(/\d+\.\s*\d{4}-\d{2}-\d{2}/);
+      const match = textOf(node).match(/\d+\.\s*\d{4}-\d{2}-\d{2}/);
       if(match) return match[0];
       node = node.previousSibling;
     }
@@ -115,7 +112,7 @@
 
   function readOrphan(slide, titleText, fallback){
     const h3 = $$('h3', slide).find(el => textOf(el) === titleText);
-    if(!h3) return fallback;
+    if(!h3) return {...fallback};
     const article = h3.closest('article.diary-card');
     if(article) return readArticle(article, fallback);
     const quote = nextElement(h3, 'p.quote');
@@ -143,6 +140,21 @@
     return `<article class="paper diary-card"><div class="diary-meta"><strong>${esc(card.date)}</strong><span>${esc(card.source)}</span></div><h3>${esc(card.title)}</h3><p class="quote">${esc(card.quote)}</p><p>${esc(card.body)}</p>${route}${question}${tagBox}</article>`;
   }
 
+  function removeLeftovers(slide, wrap){
+    // 깨진 HTML이 브라우저 보정 과정에서 wrap 바깥에 남긴 옛날 카드/문장 제거
+    Array.from(slide.childNodes).forEach(node => {
+      if(node === wrap) return;
+      if(node.nodeType === Node.TEXT_NODE && textOf(node)) node.remove();
+      if(node.nodeType === Node.ELEMENT_NODE && !node.classList.contains('final-completion-stamp')) node.remove();
+    });
+
+    // 혹시 wrap 밖이 아닌 slide 내부 다른 위치에 남은 중복 일기 요소도 제거
+    $$('article.diary-card,h3,p.quote,.route,.diary-tags,.pq', slide).forEach(el => {
+      const fixedGrid = $('.wrap > .cols3', slide);
+      if(fixedGrid && !fixedGrid.contains(el)) el.remove();
+    });
+  }
+
   function decorateDiaryCards(){
     $$('.diary-card').forEach(card => {
       const title = textOf($('h3', card));
@@ -165,29 +177,34 @@
 
   function fixYunchihoFirstSlide(){
     const slide = $$('.slide').find(s => (s.dataset.title || '').includes('윤치호 일기로 보는'));
-    if(!slide || slide.dataset.yunchihoFixed === '1') return;
-    const wrap = $(':scope > .wrap', slide) || $('.wrap', slide);
+    if(!slide) return;
+    let wrap = $(':scope > .wrap', slide) || $('.wrap', slide);
     const grid = $('.cols3', wrap || slide);
     if(!wrap || !grid) return;
 
-    const defaults = {
-      one: {date:'1. 1898-03-03', source:'국역 윤치호 영문 일기 5', title:'절차로 움직인 반외세 운동', quote:'', body:'', routeTitle:'', routeText:'', question:diaryDetails['절차로 움직인 반외세 운동'].question, tags:diaryDetails['절차로 움직인 반외세 운동'].tags},
-      two: {date:'2. 1898-10-31', source:'국역 윤치호 영문 일기 5', title:'헌의 6조를 밀어붙인 정치적 기대', quote:'', body:'', routeTitle:'해석', routeText:'황제의 권위를 활용해 개혁을 제도화하려 한 현실적 전략과 한계가 함께 드러납니다.', question:diaryDetails['헌의 6조를 밀어붙인 정치적 기대'].question, tags:diaryDetails['헌의 6조를 밀어붙인 정치적 기대'].tags},
-      three: {date:'3. 1898-11-05', source:'국역 윤치호 영문 일기 5', title:'대한의 마지막 희망이라는 절박함', quote:'', body:'', routeTitle:'해석', routeText:'자주독립 의식과 시대적 불안이 함께 드러납니다.', question:diaryDetails['대한의 마지막 희망이라는 절박함'].question, tags:diaryDetails['대한의 마지막 희망이라는 절박함'].tags}
-    };
+    if(slide.dataset.yunchihoFixed !== '1'){
+      const defaults = {
+        one: {date:'1. 1898-03-03', source:'국역 윤치호 영문 일기 5', title:'절차로 움직인 반외세 운동', quote:'', body:'', routeTitle:'', routeText:'', question:diaryDetails['절차로 움직인 반외세 운동'].question, tags:diaryDetails['절차로 움직인 반외세 운동'].tags},
+        two: {date:'2. 1898-10-31', source:'국역 윤치호 영문 일기 5', title:'헌의 6조를 밀어붙인 정치적 기대', quote:'', body:'', routeTitle:'해석', routeText:'황제의 권위를 활용해 개혁을 제도화하려 한 현실적 전략과 한계가 함께 드러납니다.', question:diaryDetails['헌의 6조를 밀어붙인 정치적 기대'].question, tags:diaryDetails['헌의 6조를 밀어붙인 정치적 기대'].tags},
+        three: {date:'3. 1898-11-05', source:'국역 윤치호 영문 일기 5', title:'대한의 마지막 희망이라는 절박함', quote:'', body:'', routeTitle:'해석', routeText:'자주독립 의식과 시대적 불안이 함께 드러납니다.', question:diaryDetails['대한의 마지막 희망이라는 절박함'].question, tags:diaryDetails['대한의 마지막 희망이라는 절박함'].tags}
+      };
 
-    const firstArticle = $$('article.diary-card', grid).find(card => textOf(card).includes('절차로 움직인 반외세 운동')) || $('article.diary-card', grid);
-    const first = firstArticle ? readArticle(firstArticle, defaults.one) : defaults.one;
-    const second = readOrphan(slide, '헌의 6조를 밀어붙인 정치적 기대', defaults.two);
-    const third = readOrphan(slide, '대한의 마지막 희망이라는 절박함', defaults.three);
+      const firstArticle = $$('article.diary-card', grid).find(card => textOf(card).includes('절차로 움직인 반외세 운동')) || $('article.diary-card', grid);
+      const first = readArticle(firstArticle, defaults.one);
+      const second = readOrphan(slide, '헌의 6조를 밀어붙인 정치적 기대', defaults.two);
+      const third = readOrphan(slide, '대한의 마지막 희망이라는 절박함', defaults.three);
 
-    const kicker = $('.kicker', wrap)?.innerHTML || '사료 강화 · 윤치호 일기';
-    const title = $('h2', wrap)?.innerHTML || slide.dataset.title || '윤치호 일기로 보는 독립협회의 희망과 균열';
-    const lead = $('.lead', wrap)?.innerHTML || '';
-    const nextText = $('.next .main', wrap)?.innerHTML || '다음: 기대와 균열 →';
+      const kicker = $('.kicker', wrap)?.innerHTML || '사료 강화 · 윤치호 일기';
+      const title = $('h2', wrap)?.innerHTML || slide.dataset.title || '윤치호 일기로 보는 독립협회의 희망과 균열';
+      const lead = $('.lead', wrap)?.innerHTML || '';
+      const nextText = $('.next .main', wrap)?.innerHTML || '다음: 기대와 균열 →';
 
-    wrap.innerHTML = `<div class="kicker">${kicker}</div><h2>${title}</h2><p class="lead">${lead}</p><div class="cols3">${cardHTML(first)}${cardHTML(second)}${cardHTML(third)}</div><div class="next"><button class="main" data-next>${nextText}</button></div>`;
-    slide.dataset.yunchihoFixed = '1';
+      wrap.innerHTML = `<div class="kicker">${kicker}</div><h2>${title}</h2><p class="lead">${lead}</p><div class="cols3">${cardHTML(first)}${cardHTML(second)}${cardHTML(third)}</div><div class="next"><button class="main" data-next>${nextText}</button></div>`;
+      slide.dataset.yunchihoFixed = '1';
+    }
+
+    wrap = $(':scope > .wrap', slide) || $('.wrap', slide);
+    removeLeftovers(slide, wrap);
   }
 
   function boot(){
@@ -200,4 +217,5 @@
   else boot();
   setTimeout(boot, 200);
   setTimeout(boot, 800);
+  setTimeout(boot, 1800);
 })();
