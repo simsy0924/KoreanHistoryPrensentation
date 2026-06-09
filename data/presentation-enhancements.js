@@ -1,604 +1,97 @@
 // 발표 보조 레이어
 // 예전 여러 보조 파일의 핵심 역할을 한 파일로 통합한다.
-// 포함: 윤치호 카드 보정, 단일 먹물 붓질 전환, 인트로 글자 등장, 선택 도장, 결론 도장, 황금 입자, 복귀 연출.
+// 포함: 윤치호 카드 보정, 단일 먹물 전환, 인트로 글자 등장, 선택 도장, 결론 도장, 황금 입자, 복귀 연출.
 (function(){
   'use strict';
 
-  const VERSION = '2026-06-10-unified-cinematic-enhancements-v6-one-brush-fixed';
+  const VERSION = '2026-06-10-unified-cinematic-enhancements-v7-only-inklite';
   window.__PRESENTATION_ENHANCEMENTS__ = VERSION;
 
   const $ = (selector, root=document) => root.querySelector(selector);
   const $$ = (selector, root=document) => Array.from(root.querySelectorAll(selector));
   const textOf = node => (node && node.textContent || '').trim();
   const esc = value => String(value || '').replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
-
   const prefersReducedMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  const isLowEnd = (() => {
-    const ua = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent || '');
-    const mem = navigator.deviceMemory && navigator.deviceMemory < 4;
-    const cores = navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4;
-    return ua || mem || cores;
-  })();
+  const isLowEnd = /iPhone|iPad|Android|Mobile/i.test(navigator.userAgent || '') || (navigator.deviceMemory && navigator.deviceMemory < 4) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4);
 
   let baseGoTo = null;
+  let navLocked = false;
+  let isReturning = false;
   let bootedOnce = false;
   let goldDustStarted = false;
-  let isReturning = false;
-  let navLocked = false;
 
   const diaryDetails = {
-    '절차로 움직인 반외세 운동': {
-      question:'독립협회의 반외세 운동은 감정적 저항이었을까, 절차를 갖춘 정치 운동이었을까?',
-      tags:['절차적 반외세','사실 확인','여론 정치','외세 견제']
-    },
-    '헌의 6조를 밀어붙인 정치적 기대': {
-      question:'황제권을 활용한 개혁 추진은 현실적 전략이었을까, 독립협회의 한계였을까?',
-      tags:['황제권','헌의 6조','개혁 전략','제도화']
-    },
-    '대한의 마지막 희망이라는 절박함': {
-      question:'독립협회를 마지막 희망으로 본 절박함은 자주독립 의식인가, 시대적 불안의 표현인가?',
-      tags:['희망과 불안','자주독립','외세 개입','정치 위기']
-    },
-    '민권운동 지도자가 느낀 대중과의 거리': {
-      question:'윤치호의 대중 비판은 엘리트주의인가, 개혁 운동의 고립감에서 나온 실망인가?',
-      tags:['대중과의 거리','엘리트주의','민권 운동','사회적 지지']
-    },
-    '만민공동회 실패를 복합적으로 본 시선': {
-      question:'만민공동회의 실패는 탄압 때문이었을까, 운동 내부의 전략과 여론 변화도 함께 작용했을까?',
-      tags:['실패의 복합 요인','전략','여론 변화','황제권']
-    },
-    '독립협회 와해 이후의 씁쓸한 총결산': {
-      question:'윤치호의 사후 평가는 실패에 대한 냉정한 진단인가, 좌절감이 만든 책임 전가인가?',
-      tags:['좌절과 냉소','공공정신','사후 평가','책임 인식']
-    }
+    '절차로 움직인 반외세 운동': {question:'독립협회의 반외세 운동은 감정적 저항이었을까, 절차를 갖춘 정치 운동이었을까?',tags:['절차적 반외세','사실 확인','여론 정치','외세 견제']},
+    '헌의 6조를 밀어붙인 정치적 기대': {question:'황제권을 활용한 개혁 추진은 현실적 전략이었을까, 독립협회의 한계였을까?',tags:['황제권','헌의 6조','개혁 전략','제도화']},
+    '대한의 마지막 희망이라는 절박함': {question:'독립협회를 마지막 희망으로 본 절박함은 자주독립 의식인가, 시대적 불안의 표현인가?',tags:['희망과 불안','자주독립','외세 개입','정치 위기']},
+    '민권운동 지도자가 느낀 대중과의 거리': {question:'윤치호의 대중 비판은 엘리트주의인가, 개혁 운동의 고립감에서 나온 실망인가?',tags:['대중과의 거리','엘리트주의','민권 운동','사회적 지지']},
+    '만민공동회 실패를 복합적으로 본 시선': {question:'만민공동회의 실패는 탄압 때문이었을까, 운동 내부의 전략과 여론 변화도 함께 작용했을까?',tags:['실패의 복합 요인','전략','여론 변화','황제권']},
+    '독립협회 와해 이후의 씁쓸한 총결산': {question:'윤치호의 사후 평가는 실패에 대한 냉정한 진단인가, 좌절감이 만든 책임 전가인가?',tags:['좌절과 냉소','공공정신','사후 평가','책임 인식']}
   };
 
   function addStyles(){
-    const old = $('#presentationEnhancementStyles');
-    if(old) old.remove();
-
+    $$('#presentationEnhancementStyles,#cinematicEffectsStyles,#animationEnhancementStyles,#presentationEffectsStyles').forEach(el => el.remove());
     const style = document.createElement('style');
     style.id = 'presentationEnhancementStyles';
     style.textContent = `
-      .diary-card{min-width:0;display:flex;flex-direction:column;gap:.65rem}
-      .diary-card .quote{max-height:min(34vh,24rem);overflow:auto;padding-right:.95rem;scrollbar-width:thin}
-      .diary-card .pq{margin-top:.45rem;padding:.8rem;border-radius:.9rem;background:rgba(141,47,39,.1);font-weight:850;color:#3b291c}
-      .diary-tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.2rem}.diary-tags .tag{margin-bottom:0;font-size:.72rem}
-
-      body.cinema-transitioning .slide.active .wrap{animation:cinemaPagePull .72s ease both;transform-origin:center center}
-      @keyframes cinemaPagePull{0%{transform:scale(1);filter:none}42%{transform:scale(.985);filter:blur(.8px) brightness(.74)}100%{transform:scale(1);filter:none}}
-      .glitching{animation:glitchSlice .36s steps(7,end) 1}
-      @keyframes glitchSlice{0%,100%{clip-path:inset(0);transform:translate(0,0);filter:none}14%{clip-path:inset(18% 0 62% 0);transform:translate(-5px,0);filter:hue-rotate(20deg)}28%{clip-path:inset(72% 0 10% 0);transform:translate(4px,0)}46%{clip-path:inset(40% 0 42% 0);transform:translate(-2px,1px);filter:hue-rotate(-12deg)}70%{clip-path:inset(0)}}
+      .diary-card{min-width:0;display:flex;flex-direction:column;gap:.65rem}.diary-card .quote{max-height:min(34vh,24rem);overflow:auto;padding-right:.95rem;scrollbar-width:thin}.diary-card .pq{margin-top:.45rem;padding:.8rem;border-radius:.9rem;background:rgba(141,47,39,.1);font-weight:850;color:#3b291c}.diary-tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.2rem}.diary-tags .tag{margin-bottom:0;font-size:.72rem}
+      body.cinema-transitioning .slide.active .wrap{animation:cinemaPagePull .82s ease both;transform-origin:center center}@keyframes cinemaPagePull{0%{transform:scale(1);filter:none}44%{transform:scale(.984);filter:blur(.9px) brightness(.74)}100%{transform:scale(1);filter:none}}
+      .glitching{animation:glitchSlice .36s steps(7,end) 1}@keyframes glitchSlice{0%,100%{clip-path:inset(0);transform:translate(0,0);filter:none}14%{clip-path:inset(18% 0 62% 0);transform:translate(-5px,0);filter:hue-rotate(20deg)}30%{clip-path:inset(72% 0 10% 0);transform:translate(4px,0)}48%{clip-path:inset(40% 0 42% 0);transform:translate(-2px,1px);filter:hue-rotate(-12deg)}70%{clip-path:inset(0)}}
       .progress{position:relative;overflow:hidden}.progress::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(241,199,110,.55),transparent);transform:translateX(-100%);animation:progSweep 8s ease-in-out infinite;mix-blend-mode:overlay;pointer-events:none}@keyframes progSweep{0%,80%,100%{transform:translateX(-100%);opacity:0}85%{transform:translateX(0);opacity:1}92%{transform:translateX(60%);opacity:.6}99%{transform:translateX(120%);opacity:0}}
 
-      /* 한 번에 하나만 보이는 먹물 붓질. SVG/RAF 재그리기 대신 단일 요소만 이동한다. */
-      .ink-sweep{position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:0;overflow:hidden;background:rgba(7,6,4,0);contain:layout paint}
-      .ink-sweep.active{opacity:1;background:rgba(7,6,4,.10)}
-      .ink-sweep .ink-brush{position:absolute;top:-30vh;bottom:-30vh;left:-78vw;width:76vw;opacity:0;border-radius:46% 54% 60% 40%/36% 62% 38% 64%;clip-path:polygon(7% 0,94% 5%,86% 18%,100% 35%,82% 53%,96% 70%,71% 100%,0 92%,12% 72%,3% 52%,17% 30%,0 10%);background:linear-gradient(90deg,rgba(7,6,4,0),rgba(7,6,4,.62) 10%,rgba(0,0,0,.97) 34%,rgba(0,0,0,.98) 56%,rgba(22,15,9,.78) 78%,rgba(201,154,58,.20) 90%,rgba(7,6,4,0));filter:drop-shadow(0 0 18px rgba(0,0,0,.78)) blur(.25px);transform:translateX(0) rotate(-7deg) skewX(-5deg) scaleX(.92)}
-      .ink-sweep.active .ink-brush{animation:oneInkBrush .82s cubic-bezier(.36,0,.18,1) both}
-      @keyframes oneInkBrush{0%{transform:translateX(-7vw) rotate(-8deg) skewX(-5deg) scaleX(.86);opacity:0}10%{opacity:.98}46%{transform:translateX(84vw) rotate(-4deg) skewX(-2deg) scaleX(1.28);opacity:1}72%{transform:translateX(124vw) rotate(-6deg) skewX(-4deg) scaleX(1.05);opacity:.9}100%{transform:translateX(176vw) rotate(-8deg) skewX(-5deg) scaleX(.84);opacity:0}}
+      #inkSweep,.ink-sweep,#inkLiteSweep~.ink-sweep{display:none!important;opacity:0!important;animation:none!important}
+      #inkLiteSweep{position:fixed;inset:0;z-index:10020;pointer-events:none;opacity:0;overflow:hidden;contain:layout paint;background:rgba(7,6,4,0)}
+      #inkLiteSweep.active{display:block!important;opacity:1;background:rgba(7,6,4,.10)}
+      #inkLiteSweep svg{position:absolute;top:-14vh;left:0;width:230vw;height:128vh;transform:translateX(-155vw);opacity:0;filter:drop-shadow(0 0 18px rgba(0,0,0,.72));will-change:transform,opacity}
+      #inkLiteSweep.active svg{animation:singleInkLiteWave .86s cubic-bezier(.36,0,.18,1) both}
+      #inkLiteSweep path{fill:#070604}
+      @keyframes singleInkLiteWave{0%{transform:translateX(-155vw) rotate(-2deg) scaleX(.96);opacity:0}10%{opacity:.98}45%{transform:translateX(-45vw) rotate(-1deg) scaleX(1.08);opacity:1}70%{transform:translateX(12vw) rotate(-2deg) scaleX(1.03);opacity:.92}100%{transform:translateX(88vw) rotate(-3deg) scaleX(.96);opacity:0}}
 
-      .ink-letter{display:inline-block;opacity:0;animation:inkBleedIn 1.15s cubic-bezier(.2,.7,.2,1) both;will-change:opacity,filter,transform}
-      @keyframes inkBleedIn{0%{opacity:0;filter:blur(14px) contrast(2.2);transform:translateY(10px) scale(.9);text-shadow:0 0 24px rgba(201,154,58,0)}35%{opacity:.65;filter:blur(5px) contrast(1.5);transform:translateY(0) scale(1) translateX(2px);text-shadow:-2px 0 rgba(141,47,39,.65),2px 0 rgba(201,154,58,.65)}55%{opacity:.85;transform:translateY(0) scale(1) translateX(-1px);text-shadow:1px 0 rgba(141,47,39,.45),-1px 0 rgba(201,154,58,.55);filter:blur(2px) contrast(1.2)}100%{opacity:1;filter:blur(0) contrast(1);transform:translateY(0) scale(1) translateX(0);text-shadow:0 0 18px rgba(201,154,58,.45),0 0 36px rgba(201,154,58,.22)}}
-
-      .feedback .verdict-stamp{position:relative!important;width:max-content!important;max-width:100%!important;margin:.9rem 0 0 auto!important;padding:.42rem .78rem .48rem!important;border:4px double rgba(141,47,39,.96)!important;border-radius:.38rem!important;display:block!important;color:var(--red,#8d2f27)!important;background:rgba(255,255,255,.38)!important;font-family:"Noto Serif KR","Noto Sans KR",serif!important;font-weight:950!important;text-align:center!important;letter-spacing:-.05em!important;opacity:1;transform:rotate(-5deg) scale(1);pointer-events:none!important;box-shadow:0 6px 14px rgba(141,47,39,.12)!important}
-      .feedback .verdict-stamp span{display:block!important;font-size:1.18rem!important;line-height:1!important}.feedback .verdict-stamp small{display:block!important;margin-top:.18rem!important;font-family:"Noto Sans KR",sans-serif!important;font-size:.76rem!important;letter-spacing:-.03em!important}
-      .feedback .verdict-stamp.stamp-impact{animation:choiceStampImpact .64s both!important;transform-origin:center center}
-      .feedback .verdict-stamp.stamp-impact::after{content:"";position:absolute;inset:-14px;border:3px solid rgba(141,47,39,.32);border-radius:.52rem;opacity:0;animation:stampShockRing .64s ease both}
-      @keyframes choiceStampImpact{0%{opacity:0;transform:translateY(-90px) rotate(-13deg) scale(2.25);filter:blur(2.2px)}24%{opacity:1;transform:translateY(0) rotate(-5deg) scale(1.22,.74);filter:none;box-shadow:inset 0 0 0 3px rgba(141,47,39,.45),0 0 0 0 rgba(141,47,39,.38),0 18px 28px rgba(141,47,39,.26)}42%{transform:translateY(-8px) rotate(-5deg) scale(.9,1.18)}62%{transform:translateY(0) rotate(-5deg) scale(1.06,.97)}82%{transform:translateY(0) rotate(-5deg) scale(.99,1.02)}100%{opacity:1;transform:translateY(0) rotate(-5deg) scale(1);filter:none;box-shadow:0 6px 14px rgba(141,47,39,.12)}}
-      @keyframes stampShockRing{0%,22%{opacity:.75;transform:scale(.75)}100%{opacity:0;transform:scale(1.55)}}
-      body.shake-once{animation:camShake .24s ease-out}@keyframes camShake{0%,100%{transform:translate(0,0)}20%{transform:translate(-5px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,-2px)}80%{transform:translate(2px,1px)}}
-
-      .verdict-stage{position:relative!important;overflow:hidden}.verdict-stage::before{content:"";position:absolute;left:-10%;right:-10%;bottom:-30%;height:170%;background:radial-gradient(ellipse at 50% 100%,rgba(20,15,11,.96) 0%,rgba(40,31,23,.7) 26%,rgba(40,31,23,.3) 50%,transparent 75%);transform:translateY(100%);animation:inkRise 2.4s cubic-bezier(.2,.7,.2,1) .25s forwards;will-change:transform;z-index:0;pointer-events:none}.verdict-stage>*{position:relative;z-index:1}@keyframes inkRise{to{transform:translateY(0)}}
-      .verdict-stage .qmain .qline{display:block;opacity:0;animation:lineReveal 1.1s cubic-bezier(.2,.7,.2,1) both;will-change:opacity,transform,filter}@keyframes lineReveal{0%{opacity:0;transform:translateY(22px);filter:blur(6px)}60%{opacity:1;transform:translateY(-3px);filter:blur(0)}100%{opacity:1;transform:translateY(0);filter:drop-shadow(0 0 12px rgba(201,154,58,.4))}}
-      .final-verdict-stamp{position:absolute;right:8%;bottom:14%;min-width:clamp(8.4rem,17vmin,13.5rem);width:max-content;max-width:min(22rem,78vw);height:auto;padding:.7rem 1.05rem .78rem;border:.36rem solid #8d2f27;border-radius:.68rem;display:grid;place-items:center;color:#8d2f27;font-family:"Noto Serif KR",serif;font-weight:950;font-size:clamp(1.35rem,3.1vmin,2.2rem);line-height:1;letter-spacing:-.08em;opacity:0;transform:translate(0,-200px) rotate(-20deg) scale(2.05);filter:blur(5px);background:rgba(141,47,39,.05);box-shadow:inset 0 0 0 .13rem rgba(141,47,39,.4);pointer-events:none;z-index:5;text-align:center}.final-verdict-stamp.drop{animation:stampDrop .58s cubic-bezier(.5,1.7,.4,1) forwards,stampSettle 1.8s ease-out .58s forwards}@keyframes stampDrop{0%{opacity:0;transform:translate(0,-200px) rotate(-20deg) scale(2.05);filter:blur(5px)}60%{opacity:1;transform:translate(0,10px) rotate(-7deg) scale(.92);filter:blur(0)}100%{opacity:1;transform:translate(0,0) rotate(-7deg) scale(1);filter:blur(0)}}@keyframes stampSettle{0%{box-shadow:inset 0 0 0 .13rem rgba(141,47,39,.4)}100%{box-shadow:inset 0 0 0 .13rem rgba(141,47,39,.6),0 0 32px rgba(141,47,39,.4)}}
-
+      .ink-letter{display:inline-block;opacity:0;animation:inkBleedIn 1.15s cubic-bezier(.2,.7,.2,1) both;will-change:opacity,filter,transform}@keyframes inkBleedIn{0%{opacity:0;filter:blur(14px) contrast(2.2);transform:translateY(10px) scale(.9);text-shadow:0 0 24px rgba(201,154,58,0)}35%{opacity:.65;filter:blur(5px) contrast(1.5);transform:translateY(0) scale(1) translateX(2px);text-shadow:-2px 0 rgba(141,47,39,.65),2px 0 rgba(201,154,58,.65)}55%{opacity:.85;transform:translateY(0) scale(1) translateX(-1px);text-shadow:1px 0 rgba(141,47,39,.45),-1px 0 rgba(201,154,58,.55);filter:blur(2px) contrast(1.2)}100%{opacity:1;filter:blur(0) contrast(1);transform:translateY(0) scale(1) translateX(0);text-shadow:0 0 18px rgba(201,154,58,.45),0 0 36px rgba(201,154,58,.22)}}
+      .feedback .verdict-stamp{position:relative!important;width:max-content!important;max-width:100%!important;margin:.9rem 0 0 auto!important;padding:.42rem .78rem .48rem!important;border:4px double rgba(141,47,39,.96)!important;border-radius:.38rem!important;display:block!important;color:var(--red,#8d2f27)!important;background:rgba(255,255,255,.38)!important;font-family:"Noto Serif KR","Noto Sans KR",serif!important;font-weight:950!important;text-align:center!important;letter-spacing:-.05em!important;opacity:1;transform:rotate(-5deg) scale(1);pointer-events:none!important;box-shadow:0 6px 14px rgba(141,47,39,.12)!important}.feedback .verdict-stamp span{display:block!important;font-size:1.18rem!important;line-height:1!important}.feedback .verdict-stamp small{display:block!important;margin-top:.18rem!important;font-family:"Noto Sans KR",sans-serif!important;font-size:.76rem!important;letter-spacing:-.03em!important}.feedback .verdict-stamp.stamp-impact{animation:choiceStampImpact .64s both!important;transform-origin:center center}.feedback .verdict-stamp.stamp-impact::after{content:"";position:absolute;inset:-14px;border:3px solid rgba(141,47,39,.32);border-radius:.52rem;opacity:0;animation:stampShockRing .64s ease both}@keyframes choiceStampImpact{0%{opacity:0;transform:translateY(-90px) rotate(-13deg) scale(2.25);filter:blur(2.2px)}24%{opacity:1;transform:translateY(0) rotate(-5deg) scale(1.22,.74);filter:none;box-shadow:inset 0 0 0 3px rgba(141,47,39,.45),0 0 0 0 rgba(141,47,39,.38),0 18px 28px rgba(141,47,39,.26)}42%{transform:translateY(-8px) rotate(-5deg) scale(.9,1.18)}62%{transform:translateY(0) rotate(-5deg) scale(1.06,.97)}82%{transform:translateY(0) rotate(-5deg) scale(.99,1.02)}100%{opacity:1;transform:translateY(0) rotate(-5deg) scale(1);filter:none;box-shadow:0 6px 14px rgba(141,47,39,.12)}}@keyframes stampShockRing{0%,22%{opacity:.75;transform:scale(.75)}100%{opacity:0;transform:scale(1.55)}}body.shake-once{animation:camShake .24s ease-out}@keyframes camShake{0%,100%{transform:translate(0,0)}20%{transform:translate(-5px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,-2px)}80%{transform:translate(2px,1px)}}
+      .verdict-stage{position:relative!important;overflow:hidden}.verdict-stage::before{content:"";position:absolute;left:-10%;right:-10%;bottom:-30%;height:170%;background:radial-gradient(ellipse at 50% 100%,rgba(20,15,11,.96) 0%,rgba(40,31,23,.7) 26%,rgba(40,31,23,.3) 50%,transparent 75%);transform:translateY(100%);animation:inkRise 2.4s cubic-bezier(.2,.7,.2,1) .25s forwards;will-change:transform;z-index:0;pointer-events:none}.verdict-stage>*{position:relative;z-index:1}@keyframes inkRise{to{transform:translateY(0)}}.verdict-stage .qmain .qline{display:block;opacity:0;animation:lineReveal 1.1s cubic-bezier(.2,.7,.2,1) both;will-change:opacity,transform,filter}@keyframes lineReveal{0%{opacity:0;transform:translateY(22px);filter:blur(6px)}60%{opacity:1;transform:translateY(-3px);filter:blur(0)}100%{opacity:1;transform:translateY(0);filter:drop-shadow(0 0 12px rgba(201,154,58,.4))}}.final-verdict-stamp{position:absolute;right:8%;bottom:14%;min-width:clamp(8.4rem,17vmin,13.5rem);width:max-content;max-width:min(22rem,78vw);height:auto;padding:.7rem 1.05rem .78rem;border:.36rem solid #8d2f27;border-radius:.68rem;display:grid;place-items:center;color:#8d2f27;font-family:"Noto Serif KR",serif;font-weight:950;font-size:clamp(1.35rem,3.1vmin,2.2rem);line-height:1;letter-spacing:-.08em;opacity:0;transform:translate(0,-200px) rotate(-20deg) scale(2.05);filter:blur(5px);background:rgba(141,47,39,.05);box-shadow:inset 0 0 0 .13rem rgba(141,47,39,.4);pointer-events:none;z-index:5;text-align:center}.final-verdict-stamp.drop{animation:stampDrop .58s cubic-bezier(.5,1.7,.4,1) forwards,stampSettle 1.8s ease-out .58s forwards}@keyframes stampDrop{0%{opacity:0;transform:translate(0,-200px) rotate(-20deg) scale(2.05);filter:blur(5px)}60%{opacity:1;transform:translate(0,10px) rotate(-7deg) scale(.92);filter:blur(0)}100%{opacity:1;transform:translate(0,0) rotate(-7deg) scale(1);filter:blur(0)}}@keyframes stampSettle{0%{box-shadow:inset 0 0 0 .13rem rgba(141,47,39,.4)}100%{box-shadow:inset 0 0 0 .13rem rgba(141,47,39,.6),0 0 32px rgba(141,47,39,.4)}}
       #returnPresentEffect{position:fixed;inset:0;z-index:10030;display:none;place-items:center;overflow:hidden;background:radial-gradient(circle at center,rgba(245,234,210,.18),transparent 18rem),radial-gradient(circle at 80% 20%,rgba(201,154,58,.22),transparent 30rem),radial-gradient(circle at 20% 80%,rgba(141,47,39,.18),transparent 26rem),#070604;color:var(--paper,#f5ead2);pointer-events:none}#returnPresentEffect.active{display:grid;animation:returnFade 3.15s ease both}#returnPresentEffect .return-tunnel{position:absolute;inset:-32vmax;background:repeating-conic-gradient(from 0deg,rgba(245,234,210,.09) 0deg 6deg,transparent 6deg 14deg),repeating-radial-gradient(circle at center,transparent 0 5.2rem,rgba(201,154,58,.11) 5.35rem 5.58rem,transparent 5.72rem 10rem);mix-blend-mode:screen;animation:returnTunnel 2.85s cubic-bezier(.22,.78,.2,1) both;opacity:.9}#returnPresentEffect .return-rings::before,#returnPresentEffect .return-rings::after{content:"";position:absolute;left:50%;top:50%;width:max(34rem,72vmax);height:max(34rem,72vmax);border:3px solid rgba(245,234,210,.24);border-radius:50%;transform:translate(-50%,-50%);animation:returnRing 2.1s ease-out infinite}#returnPresentEffect .return-rings::after{width:max(52rem,106vmax);height:max(52rem,106vmax);animation-delay:.22s;border-color:rgba(201,154,58,.3)}#returnPresentEffect .return-years{position:absolute;inset:0;z-index:3;font-weight:950;font-size:clamp(2rem,7vw,6rem);letter-spacing:-.08em;color:rgba(245,234,210,.2)}#returnPresentEffect .return-years span{position:absolute;left:50%;top:50%;opacity:0;animation:returnYear .72s ease-in-out both}#returnPresentEffect .return-years span:nth-child(1){animation-delay:0s}#returnPresentEffect .return-years span:nth-child(2){animation-delay:.34s}#returnPresentEffect .return-years span:nth-child(3){animation-delay:.68s}#returnPresentEffect .return-years span:nth-child(4){animation-delay:1.02s}#returnPresentEffect .return-years span:nth-child(5){animation-delay:1.36s;color:rgba(245,234,210,.52)}#returnPresentEffect .return-msg{position:absolute;left:50%;bottom:10vh;width:min(92vw,620px);z-index:4;text-align:center;padding:1.15rem 1.45rem;border:1px solid rgba(245,234,210,.22);border-radius:1.4rem;background:rgba(16,14,11,.6);backdrop-filter:blur(10px);box-shadow:0 24px 70px rgba(0,0,0,.3);animation:returnMsg 3.05s ease both}#returnPresentEffect .return-msg strong{display:block;font-family:"Noto Serif KR",serif;font-size:clamp(1.45rem,4vw,2.8rem);letter-spacing:-.06em;line-height:1.12}#returnPresentEffect .return-msg p{margin:.45rem 0 0;color:rgba(255,248,232,.72);line-height:1.55}@keyframes returnFade{0%{opacity:0}12%,80%{opacity:1}100%{opacity:0}}@keyframes returnRing{from{transform:translate(-50%,-50%) scale(1.85);opacity:0}28%{opacity:.55}to{transform:translate(-50%,-50%) scale(.42);opacity:0}}@keyframes returnTunnel{from{transform:scale(1.6) rotate(-170deg);opacity:.15}45%{opacity:.92}to{transform:scale(.76) rotate(0deg);opacity:.25}}@keyframes returnYear{0%{opacity:0;transform:translate(-50%,-50%) scale(.62);filter:blur(2px)}18%,68%{opacity:.95;transform:translate(-50%,-50%) scale(1);filter:blur(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.28);filter:blur(2px)}}@keyframes returnMsg{0%{opacity:0;transform:translate(-50%,24px) scale(.96)}28%,74%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-18px) scale(1.02)}}
-
-      #goldDust{position:fixed;inset:0;pointer-events:none;z-index:9990;mix-blend-mode:screen}
-      @media (prefers-reduced-motion:reduce){.ink-letter,.verdict-stage .qmain .qline{animation:none!important;opacity:1!important}.verdict-stage::before{animation:none!important;transform:translateY(0)!important;opacity:.55}.final-verdict-stamp.drop{animation:none!important;opacity:1!important;transform:translate(0,0) rotate(-7deg) scale(1)!important;filter:none!important}.feedback .verdict-stamp.stamp-impact{animation:none!important}body.shake-once{animation:none!important}.ink-sweep.active .ink-brush{animation:none!important}}
+      #goldDust{position:fixed;inset:0;pointer-events:none;z-index:9990;mix-blend-mode:screen}@media (prefers-reduced-motion:reduce){.ink-letter,.verdict-stage .qmain .qline{animation:none!important;opacity:1!important}.verdict-stage::before{animation:none!important;transform:translateY(0)!important;opacity:.55}.final-verdict-stamp.drop{animation:none!important;opacity:1!important;transform:translate(0,0) rotate(-7deg) scale(1)!important;filter:none!important}.feedback .verdict-stamp.stamp-impact{animation:none!important}body.shake-once{animation:none!important}#inkLiteSweep.active svg{animation:none!important}}
     `;
     document.head.appendChild(style);
   }
 
-  function routeText(route){
-    if(!route) return '';
-    const clone = route.cloneNode(true);
-    const strong = $('strong', clone);
-    if(strong) strong.remove();
-    return textOf(clone);
-  }
-
-  function readArticle(article, fallback){
-    if(!article) return {...fallback};
-    const title = textOf($('h3', article)) || fallback.title;
-    const detail = diaryDetails[title] || {};
-    const bodyP = $$('p', article).find(p => !p.classList.contains('quote') && !p.classList.contains('pq'));
-    const tags = $$('.diary-tags .tag', article).map(textOf).filter(Boolean);
-    return {
-      date:textOf($('.diary-meta strong', article)) || fallback.date,
-      source:textOf($('.diary-meta span', article)) || fallback.source,
-      title,
-      quote:textOf($('.quote', article)) || fallback.quote,
-      body:textOf(bodyP) || fallback.body,
-      routeTitle:textOf($('.route strong', article)) || fallback.routeTitle,
-      routeText:routeText($('.route', article)) || fallback.routeText,
-      question:textOf($('.pq', article)) || detail.question || fallback.question,
-      tags:tags.length ? tags : (detail.tags || fallback.tags || [])
-    };
-  }
-
-  function nextElement(start, selector){
-    let node = start ? start.nextSibling : null;
-    while(node){
-      if(node.nodeType === Node.ELEMENT_NODE && node.matches(selector)) return node;
-      node = node.nextSibling;
-    }
-    return null;
-  }
-
-  function previousDate(start, fallbackDate){
-    let node = start ? start.previousSibling : null;
-    while(node){
-      const match = textOf(node).match(/\d+\.\s*\d{4}-\d{2}-\d{2}/);
-      if(match) return match[0];
-      node = node.previousSibling;
-    }
-    return fallbackDate;
-  }
-
-  function previousSource(start, fallbackSource){
-    let node = start ? start.previousSibling : null;
-    while(node){
-      if(node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN' && textOf(node).includes('국역 윤치호')) return textOf(node);
-      node = node.previousSibling;
-    }
-    return fallbackSource;
-  }
-
-  function readOrphan(slide, titleText, fallback){
-    const h3 = $$('h3', slide).find(el => textOf(el) === titleText);
-    if(!h3) return {...fallback};
-    const article = h3.closest('article.diary-card');
-    if(article) return readArticle(article, fallback);
-    const quote = nextElement(h3, 'p.quote');
-    const body = quote ? nextElement(quote, 'p:not(.quote):not(.pq)') : null;
-    const route = body ? nextElement(body, '.route') : null;
-    const detail = diaryDetails[titleText] || {};
-    return {
-      date:previousDate(h3, fallback.date),
-      source:previousSource(h3, fallback.source),
-      title:titleText,
-      quote:textOf(quote) || fallback.quote,
-      body:textOf(body) || fallback.body,
-      routeTitle:textOf($('strong', route)) || fallback.routeTitle,
-      routeText:routeText(route) || fallback.routeText,
-      question:detail.question || fallback.question,
-      tags:detail.tags || fallback.tags || []
-    };
-  }
-
-  function cardHTML(card){
-    const tags = (card.tags || []).map(tag => `<span class="tag">${esc(tag)}</span>`).join('');
-    const route = card.routeTitle || card.routeText ? `<div class="route"><strong>${esc(card.routeTitle || '해석')}</strong>${esc(card.routeText)}</div>` : '';
-    const question = card.question ? `<p class="pq">${esc(card.question)}</p>` : '';
-    const tagBox = tags ? `<div class="diary-tags">${tags}</div>` : '';
-    return `<article class="paper diary-card"><div class="diary-meta"><strong>${esc(card.date)}</strong><span>${esc(card.source)}</span></div><h3>${esc(card.title)}</h3><p class="quote">${esc(card.quote)}</p><p>${esc(card.body)}</p>${route}${question}${tagBox}</article>`;
-  }
-
-  function decorateDiaryCards(){
-    $$('.diary-card').forEach(card => {
-      const title = textOf($('h3', card));
-      const detail = diaryDetails[title];
-      if(!detail) return;
-      if(!$('.pq', card)){
-        const p = document.createElement('p');
-        p.className = 'pq';
-        p.textContent = detail.question;
-        card.appendChild(p);
-      }
-      if(!$('.diary-tags', card)){
-        const box = document.createElement('div');
-        box.className = 'diary-tags';
-        box.innerHTML = detail.tags.map(tag => `<span class="tag">${esc(tag)}</span>`).join('');
-        card.appendChild(box);
-      }
-    });
-  }
-
-  function removeLeftovers(slide, wrap){
-    Array.from(slide.childNodes).forEach(node => {
-      if(node === wrap) return;
-      if(node.nodeType === Node.TEXT_NODE && textOf(node)) node.remove();
-      if(node.nodeType === Node.ELEMENT_NODE && !node.classList.contains('final-verdict-stamp')) node.remove();
-    });
-    $$('article.diary-card,h3,p.quote,.route,.diary-tags,.pq', slide).forEach(el => {
-      const fixedGrid = $('.wrap > .cols3', slide);
-      if(fixedGrid && !fixedGrid.contains(el)) el.remove();
-    });
-  }
-
-  function fixYunchihoFirstSlide(){
-    const slide = $$('.slide').find(s => (s.dataset.title || '').includes('윤치호 일기로 보는'));
-    if(!slide) return;
-    let wrap = $(':scope > .wrap', slide) || $('.wrap', slide);
-    const grid = $('.cols3', wrap || slide);
-    if(!wrap || !grid) return;
-
-    if(slide.dataset.yunchihoFixed !== '1'){
-      const defaults = {
-        one:{date:'1. 1898-03-03',source:'국역 윤치호 영문 일기 5',title:'절차로 움직인 반외세 운동',quote:'',body:'',routeTitle:'',routeText:'',question:diaryDetails['절차로 움직인 반외세 운동'].question,tags:diaryDetails['절차로 움직인 반외세 운동'].tags},
-        two:{date:'2. 1898-10-31',source:'국역 윤치호 영문 일기 5',title:'헌의 6조를 밀어붙인 정치적 기대',quote:'',body:'',routeTitle:'해석',routeText:'황제의 권위를 활용해 개혁을 제도화하려 한 현실적 전략과 한계가 함께 드러납니다.',question:diaryDetails['헌의 6조를 밀어붙인 정치적 기대'].question,tags:diaryDetails['헌의 6조를 밀어붙인 정치적 기대'].tags},
-        three:{date:'3. 1898-11-05',source:'국역 윤치호 영문 일기 5',title:'대한의 마지막 희망이라는 절박함',quote:'',body:'',routeTitle:'해석',routeText:'자주독립 의식과 시대적 불안이 함께 드러납니다.',question:diaryDetails['대한의 마지막 희망이라는 절박함'].question,tags:diaryDetails['대한의 마지막 희망이라는 절박함'].tags}
-      };
-      const firstArticle = $$('article.diary-card', grid).find(card => textOf(card).includes('절차로 움직인 반외세 운동')) || $('article.diary-card', grid);
-      const first = readArticle(firstArticle, defaults.one);
-      const second = readOrphan(slide, '헌의 6조를 밀어붙인 정치적 기대', defaults.two);
-      const third = readOrphan(slide, '대한의 마지막 희망이라는 절박함', defaults.three);
-      const kicker = $('.kicker', wrap)?.innerHTML || '사료 강화 · 윤치호 일기';
-      const title = $('h2', wrap)?.innerHTML || slide.dataset.title || '윤치호 일기로 보는 독립협회의 희망과 균열';
-      const lead = $('.lead', wrap)?.innerHTML || '';
-      const nextText = $('.next .main', wrap)?.innerHTML || '다음: 기대와 균열 →';
-      wrap.innerHTML = `<div class="kicker">${kicker}</div><h2>${title}</h2><p class="lead">${lead}</p><div class="cols3">${cardHTML(first)}${cardHTML(second)}${cardHTML(third)}</div><div class="next"><button class="main" data-next>${nextText}</button></div>`;
-      slide.dataset.yunchihoFixed = '1';
-    }
-    wrap = $(':scope > .wrap', slide) || $('.wrap', slide);
-    removeLeftovers(slide, wrap);
-  }
+  function routeText(route){ if(!route) return ''; const clone = route.cloneNode(true); const strong = $('strong', clone); if(strong) strong.remove(); return textOf(clone); }
+  function readArticle(article, fallback){ if(!article) return {...fallback}; const title = textOf($('h3', article)) || fallback.title; const detail = diaryDetails[title] || {}; const bodyP = $$('p', article).find(p => !p.classList.contains('quote') && !p.classList.contains('pq')); const tags = $$('.diary-tags .tag', article).map(textOf).filter(Boolean); return {date:textOf($('.diary-meta strong', article))||fallback.date,source:textOf($('.diary-meta span', article))||fallback.source,title,quote:textOf($('.quote', article))||fallback.quote,body:textOf(bodyP)||fallback.body,routeTitle:textOf($('.route strong', article))||fallback.routeTitle,routeText:routeText($('.route', article))||fallback.routeText,question:textOf($('.pq', article))||detail.question||fallback.question,tags:tags.length?tags:(detail.tags||fallback.tags||[])}; }
+  function nextElement(start, selector){ let node = start ? start.nextSibling : null; while(node){ if(node.nodeType === Node.ELEMENT_NODE && node.matches(selector)) return node; node = node.nextSibling; } return null; }
+  function previousDate(start, fallbackDate){ let node = start ? start.previousSibling : null; while(node){ const match = textOf(node).match(/\d+\.\s*\d{4}-\d{2}-\d{2}/); if(match) return match[0]; node = node.previousSibling; } return fallbackDate; }
+  function previousSource(start, fallbackSource){ let node = start ? start.previousSibling : null; while(node){ if(node.nodeType === Node.ELEMENT_NODE && node.tagName === 'SPAN' && textOf(node).includes('국역 윤치호')) return textOf(node); node = node.previousSibling; } return fallbackSource; }
+  function readOrphan(slide, titleText, fallback){ const h3 = $$('h3', slide).find(el => textOf(el) === titleText); if(!h3) return {...fallback}; const article = h3.closest('article.diary-card'); if(article) return readArticle(article, fallback); const quote = nextElement(h3, 'p.quote'); const body = quote ? nextElement(quote, 'p:not(.quote):not(.pq)') : null; const route = body ? nextElement(body, '.route') : null; const detail = diaryDetails[titleText] || {}; return {date:previousDate(h3,fallback.date),source:previousSource(h3,fallback.source),title:titleText,quote:textOf(quote)||fallback.quote,body:textOf(body)||fallback.body,routeTitle:textOf($('strong',route))||fallback.routeTitle,routeText:routeText(route)||fallback.routeText,question:detail.question||fallback.question,tags:detail.tags||fallback.tags||[]}; }
+  function cardHTML(card){ const tags = (card.tags||[]).map(tag => `<span class="tag">${esc(tag)}</span>`).join(''); const route = card.routeTitle || card.routeText ? `<div class="route"><strong>${esc(card.routeTitle || '해석')}</strong>${esc(card.routeText)}</div>` : ''; const question = card.question ? `<p class="pq">${esc(card.question)}</p>` : ''; const tagBox = tags ? `<div class="diary-tags">${tags}</div>` : ''; return `<article class="paper diary-card"><div class="diary-meta"><strong>${esc(card.date)}</strong><span>${esc(card.source)}</span></div><h3>${esc(card.title)}</h3><p class="quote">${esc(card.quote)}</p><p>${esc(card.body)}</p>${route}${question}${tagBox}</article>`; }
+  function decorateDiaryCards(){ $$('.diary-card').forEach(card => { const title = textOf($('h3', card)); const detail = diaryDetails[title]; if(!detail) return; if(!$('.pq', card)){ const p = document.createElement('p'); p.className = 'pq'; p.textContent = detail.question; card.appendChild(p); } if(!$('.diary-tags', card)){ const box = document.createElement('div'); box.className = 'diary-tags'; box.innerHTML = detail.tags.map(tag => `<span class="tag">${esc(tag)}</span>`).join(''); card.appendChild(box); } }); }
+  function removeLeftovers(slide, wrap){ Array.from(slide.childNodes).forEach(node => { if(node === wrap) return; if(node.nodeType === Node.TEXT_NODE && textOf(node)) node.remove(); if(node.nodeType === Node.ELEMENT_NODE && !node.classList.contains('final-verdict-stamp')) node.remove(); }); $$('article.diary-card,h3,p.quote,.route,.diary-tags,.pq', slide).forEach(el => { const fixedGrid = $('.wrap > .cols3', slide); if(fixedGrid && !fixedGrid.contains(el)) el.remove(); }); }
+  function fixYunchihoFirstSlide(){ const slide = $$('.slide').find(s => (s.dataset.title || '').includes('윤치호 일기로 보는')); if(!slide) return; let wrap = $(':scope > .wrap', slide) || $('.wrap', slide); const grid = $('.cols3', wrap || slide); if(!wrap || !grid) return; if(slide.dataset.yunchihoFixed !== '1'){ const defaults = { one:{date:'1. 1898-03-03',source:'국역 윤치호 영문 일기 5',title:'절차로 움직인 반외세 운동',quote:'',body:'',routeTitle:'',routeText:'',question:diaryDetails['절차로 움직인 반외세 운동'].question,tags:diaryDetails['절차로 움직인 반외세 운동'].tags}, two:{date:'2. 1898-10-31',source:'국역 윤치호 영문 일기 5',title:'헌의 6조를 밀어붙인 정치적 기대',quote:'',body:'',routeTitle:'해석',routeText:'황제의 권위를 활용해 개혁을 제도화하려 한 현실적 전략과 한계가 함께 드러납니다.',question:diaryDetails['헌의 6조를 밀어붙인 정치적 기대'].question,tags:diaryDetails['헌의 6조를 밀어붙인 정치적 기대'].tags}, three:{date:'3. 1898-11-05',source:'국역 윤치호 영문 일기 5',title:'대한의 마지막 희망이라는 절박함',quote:'',body:'',routeTitle:'해석',routeText:'자주독립 의식과 시대적 불안이 함께 드러납니다.',question:diaryDetails['대한의 마지막 희망이라는 절박함'].question,tags:diaryDetails['대한의 마지막 희망이라는 절박함'].tags} }; const firstArticle = $$('article.diary-card', grid).find(card => textOf(card).includes('절차로 움직인 반외세 운동')) || $('article.diary-card', grid); const first = readArticle(firstArticle, defaults.one); const second = readOrphan(slide, '헌의 6조를 밀어붙인 정치적 기대', defaults.two); const third = readOrphan(slide, '대한의 마지막 희망이라는 절박함', defaults.three); const kicker = $('.kicker', wrap)?.innerHTML || '사료 강화 · 윤치호 일기'; const title = $('h2', wrap)?.innerHTML || slide.dataset.title || '윤치호 일기로 보는 독립협회의 희망과 균열'; const lead = $('.lead', wrap)?.innerHTML || ''; const nextText = $('.next .main', wrap)?.innerHTML || '다음: 기대와 균열 →'; wrap.innerHTML = `<div class="kicker">${kicker}</div><h2>${title}</h2><p class="lead">${lead}</p><div class="cols3">${cardHTML(first)}${cardHTML(second)}${cardHTML(third)}</div><div class="next"><button class="main" data-next>${nextText}</button></div>`; slide.dataset.yunchihoFixed = '1'; } wrap = $(':scope > .wrap', slide) || $('.wrap', slide); removeLeftovers(slide, wrap); }
 
   function slides(){ return $$('.slide'); }
   function activeSlide(){ return $('.slide.active') || slides()[0] || null; }
-  function currentIndex(){
-    if(typeof window.current === 'number') return window.current;
-    const idx = slides().findIndex(s => s.classList.contains('active'));
-    return Math.max(0, idx);
-  }
+  function currentIndex(){ if(typeof window.current === 'number') return window.current; const idx = slides().findIndex(s => s.classList.contains('active')); return Math.max(0, idx); }
   function lastIndex(){ return Math.max(0, slides().length - 1); }
-
-  function createInkOverlay(){
-    $$('#inkSweep,.ink-sweep,#inkLiteSweep').forEach((el, index) => {
-      if(index > 0 || el.id !== 'inkSweep') el.remove();
-    });
-    let wrap = $('#inkSweep');
-    if(wrap) return wrap;
-    wrap = document.createElement('div');
-    wrap.id = 'inkSweep';
-    wrap.className = 'ink-sweep';
-    wrap.setAttribute('aria-hidden','true');
-    wrap.innerHTML = '<div class="ink-brush"></div>';
-    document.body.appendChild(wrap);
-    return wrap;
-  }
-
-  function playInkSweep(onMidpoint, duration){
-    return new Promise(resolve => {
-      if(prefersReducedMotion){
-        if(onMidpoint) onMidpoint();
-        resolve();
-        return;
-      }
-      if(window.__PRESENTATION_INK_RUNNING__) return;
-      window.__PRESENTATION_INK_RUNNING__ = true;
-
-      const wrap = createInkOverlay();
-      const brush = $('.ink-brush', wrap);
-      const DURATION = duration || (isLowEnd ? 620 : 820);
-      let midpointCalled = false;
-      let finished = false;
-
-      function cleanup(){
-        if(finished) return;
-        finished = true;
-        wrap.classList.remove('active');
-        if(brush) brush.style.animation = '';
-        document.body.classList.remove('cinema-transitioning');
-        window.__PRESENTATION_INK_RUNNING__ = false;
-        resolve();
-      }
-
-      wrap.classList.remove('active');
-      void wrap.offsetWidth;
-      if(brush){
-        brush.style.animation = 'none';
-        void brush.offsetWidth;
-        brush.style.animation = '';
-      }
-      wrap.classList.add('active');
-      document.body.classList.add('cinema-transitioning');
-
-      setTimeout(() => {
-        if(midpointCalled) return;
-        midpointCalled = true;
-        try{ if(onMidpoint) onMidpoint(); }catch(err){ console.debug(err); }
-      }, Math.round(DURATION * 0.46));
-
-      setTimeout(cleanup, DURATION + 80);
-    });
-  }
-
-  function createReturnOverlay(){
-    let overlay = $('#returnPresentEffect');
-    if(overlay) return overlay;
-    overlay = document.createElement('div');
-    overlay.id = 'returnPresentEffect';
-    overlay.setAttribute('aria-hidden','true');
-    overlay.innerHTML = '<div class="return-rings"></div><div class="return-tunnel"></div><div class="return-years"><span>1894</span><span>1898</span><span>1904</span><span>대한제국</span><span>현재</span></div><div class="return-msg"><strong>현재로 돌아옵니다</strong><p>조선 말기의 선택을 오늘의 질문으로 가져옵니다</p></div>';
-    document.body.appendChild(overlay);
-    return overlay;
-  }
-
-  function playReturnAndGo(target){
-    if(isReturning) return;
-    isReturning = true;
-    const overlay = createReturnOverlay();
-    overlay.classList.remove('active');
-    void overlay.offsetWidth;
-    overlay.classList.add('active');
-    setTimeout(() => { goDirect(target); afterSlideChange(undefined, currentIndex()); }, 980);
-    setTimeout(() => { overlay.classList.remove('active'); isReturning = false; afterSlideChange(undefined, currentIndex()); }, 3200);
-  }
-
-  function enhanceIntroSlide(){
-    if(prefersReducedMotion) return;
-    const slide = slides()[0];
-    if(!slide) return;
-    const h1 = $('h1', slide);
-    if(!h1 || h1.dataset.cinematicSplit) return;
-    const originalHTML = h1.innerHTML;
-    h1.innerHTML = '';
-    const tmp = document.createElement('div');
-    tmp.innerHTML = originalHTML;
-    let charIndex = 0;
-    function processNode(node, target){
-      if(node.nodeType === Node.TEXT_NODE){
-        (node.textContent || '').split('').forEach(ch => {
-          if(ch === ' '){ target.appendChild(document.createTextNode(' ')); return; }
-          const span = document.createElement('span');
-          span.className = 'ink-letter';
-          span.textContent = ch;
-          span.style.animationDelay = (charIndex++ * 0.07) + 's';
-          target.appendChild(span);
-        });
-      }else if(node.nodeType === Node.ELEMENT_NODE){
-        if(node.tagName === 'BR') target.appendChild(document.createElement('br'));
-        else{
-          const clone = node.cloneNode(false);
-          Array.from(node.childNodes).forEach(child => processNode(child, clone));
-          target.appendChild(clone);
-        }
-      }
-    }
-    Array.from(tmp.childNodes).forEach(child => processNode(child, h1));
-    h1.dataset.cinematicSplit = '1';
-  }
-
-  function resetIntroAnimation(){
-    const h1 = $('.slide.active h1');
-    if(!h1 || currentIndex() !== 0) return;
-    $$('.ink-letter', h1).forEach((letter, i) => {
-      letter.style.animation = 'none';
-      void letter.offsetWidth;
-      letter.style.animation = '';
-      letter.style.animationDelay = (i * 0.07) + 's';
-    });
-  }
-
-  function enhanceConclusionSlide(){
-    const slide = activeSlide();
-    if(!slide || currentIndex() !== lastIndex()) return;
-    slide.classList.add('verdict-stage');
-    const qmain = $('.qmain', slide);
-    if(qmain && !qmain.dataset.cinematicQuote){
-      const parts = qmain.innerHTML.split(/<br\s*\/?>/i);
-      qmain.innerHTML = parts.map((p, i) => `<span class="qline" style="animation-delay:${(1.25 + i * 0.48).toFixed(2)}s">${p}</span>`).join('');
-      qmain.dataset.cinematicQuote = '1';
-    }
-    if(slide.dataset.cinematicConclusion === '1') return;
-    slide.dataset.cinematicConclusion = '1';
-    const lineCount = qmain ? qmain.querySelectorAll('.qline').length : 0;
-    const stampDelay = prefersReducedMotion ? 40 : (1250 + lineCount * 480 + 520);
-    setTimeout(() => dropFinalStamp(slide), stampDelay);
-  }
-
-  function dropFinalStamp(parent){
-    let stamp = $('.final-verdict-stamp', parent);
-    if(!stamp){
-      stamp = document.createElement('div');
-      stamp.className = 'final-verdict-stamp';
-      stamp.innerHTML = '<span>판결 완료</span>';
-      parent.appendChild(stamp);
-    }
-    stamp.classList.remove('drop');
-    void stamp.offsetWidth;
-    stamp.classList.add('drop');
-    setTimeout(() => {
-      if(!isLowEnd) shakeOnce();
-      if(window.soundManager) window.soundManager.play('choice-complete');
-    }, 380);
-  }
-
-  function shakeOnce(){
-    document.body.classList.remove('shake-once');
-    void document.body.offsetWidth;
-    document.body.classList.add('shake-once');
-    setTimeout(() => document.body.classList.remove('shake-once'), 260);
-  }
-
-  function triggerChoiceStamp(){
-    const stamp = $('.slide.active .feedback.visible .verdict-stamp');
-    if(!stamp) return;
-    stamp.classList.remove('stamp-impact');
-    void stamp.offsetWidth;
-    stamp.classList.add('stamp-impact');
-    if(!isLowEnd) shakeOnce();
-    stamp.addEventListener('animationend', () => stamp.classList.remove('stamp-impact'), {once:true});
-  }
-
-  function initGoldDust(){
-    if(goldDustStarted || isLowEnd || prefersReducedMotion) return;
-    if($('#goldDust')) return;
-    goldDustStarted = true;
-    const cvs = document.createElement('canvas');
-    cvs.id = 'goldDust';
-    document.body.appendChild(cvs);
-    const ctx = cvs.getContext('2d');
-    let W = 0, H = 0, mx = -999, my = -999, tick = 0;
-    const particles = [];
-    const MAX = 26;
-    function resize(){ W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; }
-    resize();
-    window.addEventListener('resize', resize, {passive:true});
-    window.addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; }, {passive:true});
-    function spawn(){
-      if(particles.length >= MAX || mx < 0) return;
-      particles.push({x:mx+(Math.random()-.5)*36,y:my+(Math.random()-.5)*36,vx:(Math.random()-.5)*.5,vy:-Math.random()*.7-.15,life:1,size:1+Math.random()*1.8});
-    }
-    function loop(){
-      requestAnimationFrame(loop);
-      if(document.hidden) return;
-      tick++;
-      if(tick % 3 === 0) spawn();
-      ctx.clearRect(0,0,W,H);
-      for(let i = particles.length - 1; i >= 0; i--){
-        const p = particles[i];
-        p.x += p.vx; p.y += p.vy; p.life -= .014;
-        if(p.life <= 0){ particles.splice(i,1); continue; }
-        ctx.fillStyle = `rgba(241,199,110,${p.life * .6})`;
-        ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
-      }
-    }
-    loop();
-  }
-
-  function getStageNumber(slideEl){
-    const kicker = slideEl && $('.kicker', slideEl);
-    const m = kicker && textOf(kicker).match(/^(\d+)단계/);
-    return m ? parseInt(m[1], 10) : null;
-  }
-
-  function playGlitchPulse(target){
-    if(!target || isLowEnd || prefersReducedMotion) return;
-    target.classList.remove('glitching');
-    void target.offsetWidth;
-    target.classList.add('glitching');
-    setTimeout(() => target.classList.remove('glitching'), 390);
-  }
-
-  function isFinalReturnTarget(target, before){
-    return slides().length > 1 && before === lastIndex() - 1 && target === lastIndex();
-  }
-
-  function goDirect(target, scroll=true){
-    if(typeof baseGoTo === 'function') return baseGoTo.call(window, target, scroll);
-    if(typeof window.goTo === 'function') return window.goTo(target, scroll);
-  }
-
-  function afterSlideChange(previousStage, previousIndex){
-    setTimeout(() => {
-      const idx = currentIndex();
-      if(idx === 0 && previousIndex !== undefined && previousIndex !== 0) resetIntroAnimation();
-      if(idx === lastIndex()) enhanceConclusionSlide();
-      const stage = getStageNumber(activeSlide());
-      if(previousStage !== undefined && stage !== null && previousStage !== null && stage !== previousStage) playGlitchPulse(activeSlide());
-      ensureOnlyFinalHasVerdictStage();
-    }, 80);
-  }
-
-  function ensureOnlyFinalHasVerdictStage(){
-    slides().forEach((slide, i) => {
-      if(i !== lastIndex()){
-        slide.classList.remove('verdict-stage');
-        slide.dataset.cinematicConclusion = '';
-        $$('.final-verdict-stamp', slide).forEach(stamp => stamp.remove());
-      }
-    });
-  }
-
-  function navigateTo(target, scroll=true){
-    const before = currentIndex();
-    const safeTarget = Math.max(0, Math.min(Number(target) || 0, lastIndex()));
-    if(safeTarget === before) return goDirect(safeTarget, scroll);
-    if(isReturning || navLocked || window.__PRESENTATION_INK_RUNNING__) return;
-    if(isFinalReturnTarget(safeTarget, before)) return playReturnAndGo(safeTarget);
-
-    navLocked = true;
-    const previousStage = getStageNumber(activeSlide());
-    const indexDelta = Math.abs(safeTarget - before);
-    const duration = indexDelta >= 3 ? 980 : 820;
-    playInkSweep(() => {
-      goDirect(safeTarget, scroll);
-      afterSlideChange(previousStage, before);
-    }, duration).then(() => {
-      setTimeout(() => { navLocked = false; }, 80);
-    });
-  }
-
-  function handleNavClick(event){
-    if(event.__presentationEnhancementHandled) return;
-    const next = event.target.closest('[data-next],#nextBtn');
-    const prev = event.target.closest('#prevBtn');
-    if(!next && !prev){
-      if(event.target.closest('.choice,[data-choice]')) setTimeout(triggerChoiceStamp, 160);
-      return;
-    }
-    event.__presentationEnhancementHandled = true;
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-    if(next) window.nextSlide();
-    else window.prevSlide();
-  }
-
-  function handleNavKey(event){
-    if(event.__presentationEnhancementHandled) return;
-    if(event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
-    event.__presentationEnhancementHandled = true;
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-    if(event.key === 'ArrowRight') window.nextSlide();
-    else window.prevSlide();
-  }
-
-  function installNavigationHooks(){
-    if(window.__UNIFIED_CINEMATIC_NAV_HOOKED__) return;
-    if(typeof window.goTo !== 'function') return;
-    window.__UNIFIED_CINEMATIC_NAV_HOOKED__ = true;
-    baseGoTo = window.goTo;
-
-    window.goTo = navigateTo;
-    window.nextSlide = function(){ navigateTo(Math.min(currentIndex() + 1, lastIndex())); };
-    window.prevSlide = function(){ navigateTo(Math.max(currentIndex() - 1, 0)); };
-
-    const rawStartTimeTravel = window.startTimeTravel;
-    if(typeof rawStartTimeTravel === 'function'){
-      window.startTimeTravel = function(){
-        const before = currentIndex();
-        const result = rawStartTimeTravel.apply(this, arguments);
-        setTimeout(() => afterSlideChange(undefined, before), 2860);
-        setTimeout(() => afterSlideChange(undefined, before), 3460);
-        return result;
-      };
-    }
-
-    window.addEventListener('click', handleNavClick, true);
-    window.addEventListener('keydown', handleNavKey, true);
-  }
-
-  function boot(){
-    if(bootedOnce) return;
-    bootedOnce = true;
-    addStyles();
-    fixYunchihoFirstSlide();
-    decorateDiaryCards();
-    createInkOverlay();
-    createReturnOverlay();
-    enhanceIntroSlide();
-    installNavigationHooks();
-    initGoldDust();
-    afterSlideChange(undefined, currentIndex());
-  }
-
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true});
-  else boot();
+  function createInkOverlay(){ $$('#inkSweep,.ink-sweep,#inkLiteSweep').forEach(el => el.remove()); const wrap = document.createElement('div'); wrap.id = 'inkLiteSweep'; wrap.setAttribute('aria-hidden','true'); wrap.innerHTML = `<svg viewBox="0 0 260 100" preserveAspectRatio="none"><defs><filter id="inkLiteTurb" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency="0.018 0.048" numOctaves="2" seed="8"/><feDisplacementMap in="SourceGraphic" scale="10"/></filter></defs><path filter="url(#inkLiteTurb)" d="M0,-12 L0,112 L82,112 C76,96 103,89 88,73 C76,59 111,50 94,34 C80,20 101,13 88,-12 Z"/></svg>`; document.body.appendChild(wrap); return wrap; }
+  function playInkSweep(onMidpoint, duration){ return new Promise(resolve => { if(prefersReducedMotion){ if(onMidpoint) onMidpoint(); resolve(); return; } if(window.__PRESENTATION_INK_RUNNING__) return; window.__PRESENTATION_INK_RUNNING__ = true; const wrap = createInkOverlay(); const DURATION = duration || (isLowEnd ? 620 : 860); let done = false; function finish(){ if(done) return; done = true; wrap.classList.remove('active'); document.body.classList.remove('cinema-transitioning'); window.__PRESENTATION_INK_RUNNING__ = false; resolve(); } document.body.classList.add('cinema-transitioning'); void wrap.offsetWidth; wrap.classList.add('active'); setTimeout(() => { try{ if(onMidpoint) onMidpoint(); }catch(err){ console.debug(err); } }, Math.round(DURATION * .46)); setTimeout(finish, DURATION + 90); }); }
+  function createReturnOverlay(){ let overlay = $('#returnPresentEffect'); if(overlay) return overlay; overlay = document.createElement('div'); overlay.id = 'returnPresentEffect'; overlay.setAttribute('aria-hidden','true'); overlay.innerHTML = '<div class="return-rings"></div><div class="return-tunnel"></div><div class="return-years"><span>1894</span><span>1898</span><span>1904</span><span>대한제국</span><span>현재</span></div><div class="return-msg"><strong>현재로 돌아옵니다</strong><p>조선 말기의 선택을 오늘의 질문으로 가져옵니다</p></div>'; document.body.appendChild(overlay); return overlay; }
+  function playReturnAndGo(target){ if(isReturning) return; isReturning = true; const overlay = createReturnOverlay(); overlay.classList.remove('active'); void overlay.offsetWidth; overlay.classList.add('active'); setTimeout(() => { goDirect(target); afterSlideChange(undefined, currentIndex()); }, 980); setTimeout(() => { overlay.classList.remove('active'); isReturning = false; afterSlideChange(undefined, currentIndex()); }, 3200); }
+  function enhanceIntroSlide(){ if(prefersReducedMotion) return; const slide = slides()[0]; if(!slide) return; const h1 = $('h1', slide); if(!h1 || h1.dataset.cinematicSplit) return; const originalHTML = h1.innerHTML; h1.innerHTML = ''; const tmp = document.createElement('div'); tmp.innerHTML = originalHTML; let charIndex = 0; function processNode(node, target){ if(node.nodeType === Node.TEXT_NODE){ (node.textContent || '').split('').forEach(ch => { if(ch === ' '){ target.appendChild(document.createTextNode(' ')); return; } const span = document.createElement('span'); span.className = 'ink-letter'; span.textContent = ch; span.style.animationDelay = (charIndex++ * 0.07) + 's'; target.appendChild(span); }); }else if(node.nodeType === Node.ELEMENT_NODE){ if(node.tagName === 'BR') target.appendChild(document.createElement('br')); else{ const clone = node.cloneNode(false); Array.from(node.childNodes).forEach(child => processNode(child, clone)); target.appendChild(clone); } } } Array.from(tmp.childNodes).forEach(child => processNode(child, h1)); h1.dataset.cinematicSplit = '1'; }
+  function resetIntroAnimation(){ const h1 = $('.slide.active h1'); if(!h1 || currentIndex() !== 0) return; $$('.ink-letter', h1).forEach((letter, i) => { letter.style.animation = 'none'; void letter.offsetWidth; letter.style.animation = ''; letter.style.animationDelay = (i * 0.07) + 's'; }); }
+  function enhanceConclusionSlide(){ const slide = activeSlide(); if(!slide || currentIndex() !== lastIndex()) return; slide.classList.add('verdict-stage'); const qmain = $('.qmain', slide); if(qmain && !qmain.dataset.cinematicQuote){ const parts = qmain.innerHTML.split(/<br\s*\/?>/i); qmain.innerHTML = parts.map((p, i) => `<span class="qline" style="animation-delay:${(1.25 + i * 0.48).toFixed(2)}s">${p}</span>`).join(''); qmain.dataset.cinematicQuote = '1'; } if(slide.dataset.cinematicConclusion === '1') return; slide.dataset.cinematicConclusion = '1'; const lineCount = qmain ? qmain.querySelectorAll('.qline').length : 0; const stampDelay = prefersReducedMotion ? 40 : (1250 + lineCount * 480 + 520); setTimeout(() => dropFinalStamp(slide), stampDelay); }
+  function dropFinalStamp(parent){ let stamp = $('.final-verdict-stamp', parent); if(!stamp){ stamp = document.createElement('div'); stamp.className = 'final-verdict-stamp'; stamp.innerHTML = '<span>판결 완료</span>'; parent.appendChild(stamp); } stamp.classList.remove('drop'); void stamp.offsetWidth; stamp.classList.add('drop'); setTimeout(() => { if(!isLowEnd) shakeOnce(); if(window.soundManager) window.soundManager.play('choice-complete'); }, 380); }
+  function shakeOnce(){ document.body.classList.remove('shake-once'); void document.body.offsetWidth; document.body.classList.add('shake-once'); setTimeout(() => document.body.classList.remove('shake-once'), 260); }
+  function triggerChoiceStamp(){ const stamp = $('.slide.active .feedback.visible .verdict-stamp'); if(!stamp) return; stamp.classList.remove('stamp-impact'); void stamp.offsetWidth; stamp.classList.add('stamp-impact'); if(!isLowEnd) shakeOnce(); stamp.addEventListener('animationend', () => stamp.classList.remove('stamp-impact'), {once:true}); }
+  function initGoldDust(){ if(goldDustStarted || isLowEnd || prefersReducedMotion || $('#goldDust')) return; goldDustStarted = true; const cvs = document.createElement('canvas'); cvs.id = 'goldDust'; document.body.appendChild(cvs); const ctx = cvs.getContext('2d'); let W=0,H=0,mx=-999,my=-999,tick=0; const particles=[]; function resize(){ W=cvs.width=innerWidth; H=cvs.height=innerHeight; } resize(); addEventListener('resize',resize,{passive:true}); addEventListener('pointermove',e=>{mx=e.clientX;my=e.clientY;},{passive:true}); function loop(){ requestAnimationFrame(loop); if(document.hidden) return; tick++; if(tick%3===0&&particles.length<26&&mx>=0) particles.push({x:mx+(Math.random()-.5)*36,y:my+(Math.random()-.5)*36,vx:(Math.random()-.5)*.5,vy:-Math.random()*.7-.15,life:1,size:1+Math.random()*1.8}); ctx.clearRect(0,0,W,H); for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.life-=.014;if(p.life<=0){particles.splice(i,1);continue;}ctx.fillStyle=`rgba(241,199,110,${p.life*.6})`;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();}} loop(); }
+  function getStageNumber(slideEl){ const kicker = slideEl && $('.kicker', slideEl); const m = kicker && textOf(kicker).match(/^(\d+)단계/); return m ? parseInt(m[1], 10) : null; }
+  function playGlitchPulse(target){ if(!target || isLowEnd || prefersReducedMotion) return; target.classList.remove('glitching'); void target.offsetWidth; target.classList.add('glitching'); setTimeout(() => target.classList.remove('glitching'), 390); }
+  function isFinalReturnTarget(target, before){ return slides().length > 1 && before === lastIndex() - 1 && target === lastIndex(); }
+  function goDirect(target, scroll=true){ if(typeof baseGoTo === 'function') return baseGoTo.call(window, target, scroll); if(typeof window.goTo === 'function') return window.goTo(target, scroll); }
+  function afterSlideChange(previousStage, previousIndex){ setTimeout(() => { const idx = currentIndex(); if(idx === 0 && previousIndex !== undefined && previousIndex !== 0) resetIntroAnimation(); if(idx === lastIndex()) enhanceConclusionSlide(); const stage = getStageNumber(activeSlide()); if(previousStage !== undefined && stage !== null && previousStage !== null && stage !== previousStage) playGlitchPulse(activeSlide()); ensureOnlyFinalHasVerdictStage(); }, 80); }
+  function ensureOnlyFinalHasVerdictStage(){ slides().forEach((slide, i) => { if(i !== lastIndex()){ slide.classList.remove('verdict-stage'); slide.dataset.cinematicConclusion = ''; $$('.final-verdict-stamp', slide).forEach(stamp => stamp.remove()); } }); }
+  function navigateTo(target, scroll=true){ const before = currentIndex(); const safeTarget = Math.max(0, Math.min(Number(target) || 0, lastIndex())); if(safeTarget === before) return goDirect(safeTarget, scroll); if(navLocked || isReturning || window.__PRESENTATION_INK_RUNNING__) return; if(isFinalReturnTarget(safeTarget, before)) return playReturnAndGo(safeTarget); navLocked = true; const previousStage = getStageNumber(activeSlide()); const indexDelta = Math.abs(safeTarget - before); playInkSweep(() => { goDirect(safeTarget, scroll); afterSlideChange(previousStage, before); }, indexDelta >= 3 ? 980 : 860).then(() => setTimeout(() => { navLocked = false; }, 100)); }
+  function handleNavClick(event){ if(event.__presentationEnhancementHandled) return; const next = event.target.closest('[data-next],#nextBtn'); const prev = event.target.closest('#prevBtn'); if(!next && !prev){ if(event.target.closest('.choice,[data-choice]')) setTimeout(triggerChoiceStamp, 160); return; } event.__presentationEnhancementHandled = true; event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); if(next) window.nextSlide(); else window.prevSlide(); }
+  function handleNavKey(event){ if(event.__presentationEnhancementHandled || (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft')) return; event.__presentationEnhancementHandled = true; event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); if(event.key === 'ArrowRight') window.nextSlide(); else window.prevSlide(); }
+  function installNavigationHooks(){ if(window.__UNIFIED_CINEMATIC_NAV_HOOKED__) return; if(typeof window.goTo !== 'function') return; window.__UNIFIED_CINEMATIC_NAV_HOOKED__ = true; baseGoTo = window.goTo; window.goTo = navigateTo; window.nextSlide = () => navigateTo(Math.min(currentIndex()+1,lastIndex())); window.prevSlide = () => navigateTo(Math.max(currentIndex()-1,0)); const rawStartTimeTravel = window.startTimeTravel; if(typeof rawStartTimeTravel === 'function'){ window.startTimeTravel = function(){ const before = currentIndex(); const result = rawStartTimeTravel.apply(this, arguments); setTimeout(() => afterSlideChange(undefined,before),2860); setTimeout(() => afterSlideChange(undefined,before),3460); return result; }; } addEventListener('click', handleNavClick, true); addEventListener('keydown', handleNavKey, true); }
+  function boot(){ if(bootedOnce) return; bootedOnce = true; addStyles(); fixYunchihoFirstSlide(); decorateDiaryCards(); createInkOverlay(); createReturnOverlay(); enhanceIntroSlide(); installNavigationHooks(); initGoldDust(); afterSlideChange(undefined, currentIndex()); }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true}); else boot();
 })();
